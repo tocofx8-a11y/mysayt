@@ -1,14 +1,17 @@
 """
 Raqamli Avlod — O'quv markaz platformasi uchun Django sozlamalari.
 """
+import os
 from pathlib import Path
+
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # XAVFSIZLIK: production'ga chiqarishdan oldin bu qiymatlarni albatta o'zgartiring!
-SECRET_KEY = 'django-insecure-CHANGE-THIS-BEFORE-DEPLOY'
-DEBUG = True
-ALLOWED_HOSTS = ['*']  # rivojlantirish uchun; productionda aniq domen yoziladi
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-CHANGE-THIS-BEFORE-DEPLOY')
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -17,7 +20,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     # Bizning ilovalarimiz
     'accounts',   # foydalanuvchilar va rollar (Super Admin, Admin, O'qituvchi, Talaba)
     'core',       # kurslar, guruhlar, darslar, faoliyat logi
@@ -54,12 +56,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Ma'lumotlar bazasi — boshida SQLite, keyinchalik PostgreSQL'ga o'tkazish mumkin
+# Ma'lumotlar bazasi — DATABASE_URL bo'lsa PostgreSQL, bo'lmasa SQLite
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        env='DATABASE_URL',
+        conn_max_age=600,
+    )
 }
 
 # Bizning maxsus User modelimiz (4 xil rol bilan)
@@ -79,6 +82,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Talabalar yuklaydigan fayllar (.pdf, .docx, .txt, video va h.k.) shu yerga saqlanadi
 MEDIA_URL = '/media/'
