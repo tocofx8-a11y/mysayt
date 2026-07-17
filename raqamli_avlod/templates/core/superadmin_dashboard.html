@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Super Admin paneli{% endblock %}
+{% block content %}
+<div class="page-eyebrow">Super Admin</div>
+<h1>Boshqaruv paneli</h1>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon"><svg class="icon icon-lg"><use href="#i-book"/></svg></div>
+        <div class="stat-value">{{ courses.count }}</div>
+        <div class="stat-label">Kurslar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><svg class="icon icon-lg"><use href="#i-users"/></svg></div>
+        <div class="stat-value">{{ groups.count }}</div>
+        <div class="stat-label">Guruhlar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><svg class="icon icon-lg"><use href="#i-user-plus"/></svg></div>
+        <div class="stat-value">{{ admins.count }}</div>
+        <div class="stat-label">Adminlar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><svg class="icon icon-lg"><use href="#i-layers"/></svg></div>
+        <div class="stat-value">{{ teachers.count }}</div>
+        <div class="stat-label">O'qituvchilar</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-plus-circle"/></svg>Tezkor amallar</h3></div>
+    <a href="{% url 'create_staff' %}"><button type="button"><svg class="icon"><use href="#i-user-plus"/></svg>Admin/O'qituvchi qo'shish</button></a>
+    <a href="{% url 'create_course' %}"><button type="button" class="btn-ghost"><svg class="icon"><use href="#i-book"/></svg>Yangi kurs</button></a>
+    <a href="{% url 'create_group' %}"><button type="button" class="btn-ghost"><svg class="icon"><use href="#i-users"/></svg>Yangi guruh</button></a>
+    <a href="{% url 'showcase_list' %}"><button type="button" class="btn-ghost"><svg class="icon"><use href="#i-layers"/></svg>Ko'rsatma</button></a>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-user-plus"/></svg>Adminlar</h3><span class="badge badge-primary">{{ admins.count }}</span></div>
+    <table>
+        <tr><th>Ism familiya</th><th>Login</th><th>Telefon</th><th>Holati</th><th></th></tr>
+        {% for a in admins %}
+        <tr>
+            <td>{{ a.get_full_name }}</td>
+            <td><code style="font-family:var(--font-mono);font-size:12.5px;">{{ a.username }}</code></td>
+            <td>{{ a.phone|default:"—" }}</td>
+            <td>{% if a.is_active %}<span class="badge badge-success"><svg class="icon" style="width:11px;height:11px;"><use href="#i-check"/></svg>Faol</span>{% else %}<span class="badge badge-muted">Chiqarilgan</span>{% endif %}</td>
+            <td>
+                <div class="row-actions">
+                    <a href="{% url 'edit_staff' a.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Tahrirlash</button></a>
+                    <form method="post" action="{% url 'toggle_staff_active' a.id %}" style="display:inline;"
+                          onsubmit="return confirm('{{ a.get_full_name }} {% if a.is_active %}ni chiqarib yuborishni{% else %}ni qayta faollashtirishni{% endif %} tasdiqlaysizmi?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-sm {% if a.is_active %}btn-danger-ghost{% else %}btn-success-ghost{% endif %}">
+                            {% if a.is_active %}Chiqarib yuborish{% else %}Qayta faollashtirish{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% empty %}<tr><td colspan="5" class="empty-state">Hali adminlar yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-layers"/></svg>O'qituvchilar</h3><span class="badge badge-primary">{{ teachers.count }}</span></div>
+    <table>
+        <tr><th>Ism familiya</th><th>Login</th><th>Telefon</th><th>Holati</th><th></th></tr>
+        {% for t in teachers %}
+        <tr>
+            <td>{{ t.get_full_name }}</td>
+            <td><code style="font-family:var(--font-mono);font-size:12.5px;">{{ t.username }}</code></td>
+            <td>{{ t.phone|default:"—" }}</td>
+            <td>{% if t.is_active %}<span class="badge badge-success"><svg class="icon" style="width:11px;height:11px;"><use href="#i-check"/></svg>Faol</span>{% else %}<span class="badge badge-muted">Chiqarilgan</span>{% endif %}</td>
+            <td>
+                <div class="row-actions">
+                    <a href="{% url 'edit_staff' t.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Tahrirlash</button></a>
+                    <form method="post" action="{% url 'toggle_staff_active' t.id %}" style="display:inline;"
+                          onsubmit="return confirm('{{ t.get_full_name }} {% if t.is_active %}ni chiqarib yuborishni{% else %}ni qayta faollashtirishni{% endif %} tasdiqlaysizmi?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-sm {% if t.is_active %}btn-danger-ghost{% else %}btn-success-ghost{% endif %}">
+                            {% if t.is_active %}Chiqarib yuborish{% else %}Qayta faollashtirish{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% empty %}<tr><td colspan="5" class="empty-state">Hali o'qituvchilar yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-book"/></svg>Kurslar</h3><span class="badge badge-primary">{{ courses.count }}</span></div>
+    <table>
+        <tr><th>Nomi</th><th>Yaratilgan</th><th></th></tr>
+        {% for c in courses %}
+        <tr>
+            <td>{{ c.name }}</td>
+            <td>{{ c.created_at|date:"d.m.Y H:i" }}</td>
+            <td><a href="{% url 'edit_course' c.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Tahrirlash</button></a></td>
+        </tr>
+        {% empty %}<tr><td colspan="3" class="empty-state">Hali kurslar yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-users"/></svg>Guruhlar</h3><span class="badge badge-primary">{{ groups.count }}</span></div>
+    <table>
+        <tr><th>Guruh</th><th>Kurs</th><th>O'qituvchi</th><th></th></tr>
+        {% for g in groups %}
+        <tr>
+            <td><strong>{{ g.name }}</strong></td>
+            <td>{{ g.course.name }}</td>
+            <td>{{ g.teacher|default:"—" }}</td>
+            <td><a href="{% url 'edit_group' g.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Tahrirlash / almashtirish</button></a></td>
+        </tr>
+        {% empty %}<tr><td colspan="4" class="empty-state">Hali guruhlar yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-clipboard"/></svg>So'nggi faoliyat</h3></div>
+    <table>
+        <tr><th>Vaqt</th><th>Kim</th><th>Nima qildi</th></tr>
+        {% for log in logs %}
+        <tr>
+            <td style="font-family:var(--font-mono);font-size:12.5px;color:var(--muted);">{{ log.created_at|date:"H:i" }}</td>
+            <td>{{ log.actor.get_role_display }} {{ log.actor.get_full_name|default:log.actor.username }}</td>
+            <td>{{ log.description }}</td>
+        </tr>
+        {% empty %}<tr><td colspan="3" class="empty-state">Hali faoliyat yo'q</td></tr>{% endfor %}
+    </table>
+    {% if logs.paginator.num_pages > 1 %}
+    <div class="flex-row" style="justify-content:center;gap:8px;margin-top:16px;">
+        {% if logs.has_previous %}
+            <a href="?page=1">&laquo; Birinchi</a>
+            <a href="?page={{ logs.previous_page_number }}">&lsaquo; Oldingi</a>
+        {% endif %}
+        <span class="badge badge-muted">{{ logs.number }} / {{ logs.paginator.num_pages }}-bet</span>
+        {% if logs.has_next %}
+            <a href="?page={{ logs.next_page_number }}">Keyingi &rsaquo;</a>
+            <a href="?page={{ logs.paginator.num_pages }}">Oxirgi &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

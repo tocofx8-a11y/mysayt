@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Sertifikat berish — {{ group.name }}{% endblock %}
+{% block content %}
+<h1>{{ group.name }} — sertifikat berish</h1>
+<p><a href="{% url 'group_detail' group.id %}">&larr; Guruhga qaytish</a></p>
+
+<div class="card">
+    <table>
+        <tr><th>Talaba</th><th>Holati</th><th></th></tr>
+        {% for m in members %}
+        <tr>
+            <td>{{ m.student.get_full_name }}</td>
+            <td>{% if m.student.id in issued_ids %}✅ Sertifikat berilgan{% else %}—{% endif %}</td>
+            <td>
+                {% if m.student.id not in issued_ids %}
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="student_id" value="{{ m.student.id }}">
+                    <button type="submit">Sertifikat berish</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}<tr><td colspan="3">Guruhda talaba yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+{% endblock %}

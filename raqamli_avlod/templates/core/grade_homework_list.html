@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Baholash — {{ lesson.title }}{% endblock %}
+{% block content %}
+<h1>Baholash: {{ lesson.title }}</h1>
+<p><a href="{% url 'lesson_detail' lesson.id %}">&larr; Darsga qaytish</a></p>
+
+<div class="card">
+    <table>
+        <tr><th>Talaba</th><th>Video</th><th>Topshiriq</th><th>Savollar</th><th>Quiz</th><th>Faollik</th><th>Jami</th><th></th></tr>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row.student.get_full_name }}</td>
+            <td>{{ row.score.video_score }}</td>
+            <td>{{ row.score.task_score }}</td>
+            <td>{{ row.score.questions_score }}</td>
+            <td>{{ row.score.quiz_score }}</td>
+            <td>{{ row.score.activity_score }}</td>
+            <td><strong>{{ row.score.total }}</strong></td>
+            <td><a href="{% url 'grade_student_homework' lesson.id row.student.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-chart"/></svg>Batafsil / baholash</button></a></td>
+        </tr>
+        {% empty %}<tr><td colspan="8">Guruhda talaba yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}O'qituvchi paneli{% endblock %}
+{% block content %}
+<div class="page-eyebrow">O'qituvchi</div>
+<h1>Mening guruhlarim</h1>
+
+{% for g in groups %}
+<div class="card">
+    <h3>{{ g.name }} <small>({{ g.course.name }})</small></h3>
+    <a href="{% url 'create_lesson' g.id %}"><button type="button">+ Yangi dars qo'shish</button></a>
+    <table>
+        <tr><th>#</th><th>Dars mavzusi</th><th>Qo'shilgan</th><th></th></tr>
+        {% for lesson in g.lessons.all %}
+        <tr>
+            <td>{{ lesson.order }}</td>
+            <td>{{ lesson.title }}</td>
+            <td>{{ lesson.created_at|date:"d.m.Y" }}</td>
+            <td>
+                <a href="{% url 'lesson_detail' lesson.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Boshqarish</button></a>
+                <a href="{% url 'edit_lesson' lesson.id %}"><button type="button" class="btn-ghost btn-sm">✏️ Tahrirlash</button></a>
+            </td>
+        </tr>
+        {% empty %}<tr><td colspan="4">Hali dars qo'shilmagan</td></tr>{% endfor %}
+    </table>
+</div>
+{% empty %}
+<div class="card">Sizga hali guruh biriktirilmagan. Super Admin bilan bog'laning.</div>
+{% endfor %}
+{% endblock %}

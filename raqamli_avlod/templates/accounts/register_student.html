@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Talaba ro'yxatga olish{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;">
+    <h2>Yangi talabani ro'yxatga olish</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Ro'yxatga olish</button>
+        <a href="{% url 'admin_dashboard' %}">Bekor qilish</a>
+    </form>
+</div>
+{% endblock %}

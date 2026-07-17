@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Monitoring — {{ group.name }}{% endblock %}
+{% block content %}
+<div class="page-eyebrow">Admin · Monitoring</div>
+<h1>{{ group.name }} <small>({{ group.course.name }})</small></h1>
+<p><a href="{% url 'monitoring' %}">&larr; Guruhlar ro'yxatiga qaytish</a></p>
+
+<div class="card">
+    <table>
+        <tr>
+            <th>Talaba</th>
+            <th>Kuzatuvchi</th>
+            <th>So'nggi dars</th>
+            <th>Ball</th>
+            <th>Tanishib chiqdimi</th>
+        </tr>
+        {% for row in rows %}
+        <tr>
+            <td><strong>{{ row.student.get_full_name }}</strong></td>
+            <td>
+                {% if row.observer %}
+                    {{ row.observer.get_full_name }}
+                    <br><small>Login: {{ row.observer.username }}</small>
+                {% else %}
+                    <span class="badge badge-muted">Kuzatuvchi biriktirilmagan</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if row.last_lesson %}{{ row.last_lesson.title }}{% else %}<span class="empty-state">Dars yo'q</span>{% endif %}
+            </td>
+            <td>
+                {% if row.last_score %}<span class="score-pill">{{ row.last_score.total }}/{{ row.last_score.max_total }}</span>{% else %}—{% endif %}
+            </td>
+            <td>
+                {% if row.observer %}
+                    {% if row.confirmation and not row.is_stale %}
+                        <span class="badge badge-success"><svg class="icon" style="width:11px;height:11px;"><use href="#i-check"/></svg>Tanishib chiqqan</span>
+                        <br><small>{{ row.confirmation.confirmed_at|date:"d.m.Y H:i" }}</small>
+                    {% elif row.confirmation and row.is_stale %}
+                        <span class="badge badge-warning">⚠️ Yangilanish bor</span>
+                        <br><small>Oxirgi: {{ row.confirmation.confirmed_at|date:"d.m.Y H:i" }}</small>
+                    {% else %}
+                        <span class="badge badge-warning">Hali tanishmagan</span>
+                    {% endif %}
+                {% else %}
+                    <span class="badge badge-muted">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}<tr><td colspan="5" class="empty-state">Guruhda talaba yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+{% endblock %}

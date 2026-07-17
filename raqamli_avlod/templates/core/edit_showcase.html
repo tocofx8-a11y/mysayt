@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Ko'rsatma tugmasini tahrirlash{% endblock %}
+{% block content %}
+<div class="page-eyebrow">Super Admin</div>
+<h1>{{ card.get_slot_display }}ni tahrirlash</h1>
+<div class="card" style="max-width:560px;">
+    {% if card.icon_image %}
+    <p style="margin-bottom:14px;">
+        Joriy rasm:<br>
+        <img src="{{ card.icon_image.url }}" alt="" style="max-width:120px;max-height:120px;border-radius:12px;margin-top:8px;">
+    </p>
+    {% endif %}
+    {% if card.word_file %}
+    <p class="empty-state" style="margin-top:-4px;">
+        Joriy Word fayl: <a href="{{ card.word_file.url }}" target="_blank">{{ card.word_file.name|slice:"14:" }}</a>
+    </p>
+    {% endif %}
+    <p class="empty-state" style="margin-top:-4px;">
+        📄 Word fayl yuklasangiz, undagi matn avtomatik ajratib olinib, pastdagi "Matn" maydoniga
+        joylanadi va sayt fonida (oq rangda) ko'rsatiladi — Word faylining o'z rasmiylashtirilishi ishlatilmaydi.
+    </p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Saqlash</button>
+        <a href="{% url 'showcase_list' %}"><button type="button" class="btn-ghost">Bekor qilish</button></a>
+    </form>
+</div>
+{% endblock %}

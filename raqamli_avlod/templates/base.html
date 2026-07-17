@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="uz" class="{% if user.is_authenticated %}is-app{% else %}is-guest{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Raqamli Avlod{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #14152B;
+            --ink-soft: #383A54;
+            --muted: #676B85;
+            --muted-light: #9B9EBD;
+            --bg: #F3F4FA;
+            --surface: #FFFFFF;
+            --border: #E5E7F1;
+            --primary: #4F46E5;
+            --primary-dark: #3B32C9;
+            --primary-light: #EEF0FF;
+            --accent: #F5A623;
+            --accent-light: #FFF4E0;
+            --success: #16A34A;
+            --success-light: #DCFCE7;
+            --danger: #DC2626;
+            --danger-light: #FEE2E2;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow-sm: 0 1px 2px rgba(23,24,44,0.05), 0 1px 1px rgba(23,24,44,0.03);
+            --shadow-md: 0 8px 24px -6px rgba(23,24,44,0.10);
+            --shadow-lift: 0 16px 36px -10px rgba(79,70,229,0.22), 0 4px 10px rgba(23,24,44,0.06);
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --font-display: 'Sora', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* ---- Tomchi (liquid-glass) oynalar uchun ranglar ---- */
+            --glass-ink: #EEF0FF;
+            --glass-ink-soft: #C7C9E8;
+            --glass-muted: #9CA0CB;
+            --glass-border: rgba(255,255,255,0.16);
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            margin: 0;
+            background: var(--bg);
+            color: #D5D7EC;
+            font-size: 14.5px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Kartalar endi tomchi (liquid-glass) effektida - orqadagi tarmoq animatsiyasi buzilgan holda ko'rinadi */
+        .card, .stat-card, .certificate-frame { color: var(--glass-ink); }
+        .card h2, .card h3, .stat-card h3, .certificate-frame h2, .certificate-frame h3 { color: var(--glass-ink); }
+        .card small, .stat-card small { color: var(--glass-muted); }
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            font-weight: 700;
+            letter-spacing: -0.015em;
+            margin: 0 0 4px;
+            color: var(--ink);
+        }
+        h1 { font-size: 25px; color: #F4F5FC; }
+        h2 { font-size: 19px; }
+        h3 { font-size: 15px; font-weight: 700; }
+        a { color: var(--primary); text-decoration: none; transition: color 0.15s var(--ease); }
+
+        /* --- .main ichidagi barcha "yalang'och" havolalarni tugma ko'rinishiga
+           o'tkazish (allaqachon <button> ichiga olingan, badge yoki showcase
+           tugmalari bundan mustasno). Sidebar navigatsiyasiga tegmaydi. --- */
+        .main a:not(:has(button)):not(.badge):not(.showcase-btn):not(.score-pill) {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid var(--glass-border, rgba(255,255,255,0.16));
+            color: var(--glass-ink, #EEF0FF);
+            font-weight: 600;
+            font-size: 13px;
+            text-decoration: none;
+            transition: background 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.15s var(--ease);
+        }
+        .main a:not(:has(button)):not(.badge):not(.showcase-btn):not(.score-pill):hover {
+            background: rgba(129,140,248,0.16);
+            border-color: rgba(129,140,248,0.55);
+            transform: translateY(-1px);
+        }
+        a:hover { text-decoration: underline; }
+        p { margin: 0 0 10px; }
+        small { color: #A8ABD0; font-weight: 400; }
+        .card small, .stat-card small { color: var(--muted); }
+        .icon { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; flex-shrink: 0; }
+        .icon-lg { width: 22px; height: 22px; }
+
+        /* ---------- LAYOUT ---------- */
+        .app { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0;
+            background: var(--ink);
+            color: #E7E8F5;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+        .sidebar .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; padding: 0 6px; }
+        .logo-mark {
+            width: 36px; height: 36px; border-radius: 11px;
+            background: linear-gradient(135deg, var(--primary), #8B5CF6 60%, #38BDF8);
+            box-shadow: 0 4px 14px rgba(79,70,229,0.45), inset 0 1px 0 rgba(255,255,255,0.35);
+            color: white; font-family: var(--font-display); font-weight: 800; font-size: 13px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .logo-text { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: white; line-height: 1.25; }
+        .logo-text small { display: block; color: #8B8DBF; font-size: 10.5px; font-weight: 500; letter-spacing: 0.02em; }
+        .nav-section-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #6668A3; padding: 14px 12px 6px; }
+        .sidebar nav { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; }
+        .sidebar nav a {
+            display: flex; align-items: center; gap: 10px;
+            color: #C7C9E8; text-decoration: none;
+            padding: 9px 12px; border-radius: var(--radius-sm);
+            font-size: 13.5px; font-weight: 500;
+            transition: background 0.2s var(--ease), color 0.2s var(--ease), transform 0.2s var(--ease);
+        }
+        .sidebar nav a:hover { background: rgba(255,255,255,0.08); color: white; text-decoration: none; transform: translateX(3px); }
+        .sidebar nav a .icon { color: #8688B8; transition: color 0.2s var(--ease); }
+        .sidebar nav a:hover .icon { color: white; }
+        .sidebar .user-box { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px; margin-top: 14px; font-size: 13px; }
+        .user-row { display: flex; align-items: center; gap: 9px; }
+        .user-avatar {
+            width: 34px; height: 34px; border-radius: 11px;
+            background: var(--primary-light);
+            color: var(--primary-dark); font-family: var(--font-display); font-weight: 700; font-size: 13px;
+            display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .user-name { color: white; font-weight: 600; font-size: 13px; line-height: 1.3; }
+        .role-tag {
+            display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700;
+            padding: 2px 9px; border-radius: 999px; background: rgba(79,70,229,0.28); color: #C7C9FF;
+            margin-top: 3px; text-transform: uppercase; letter-spacing: 0.03em;
+        }
+        .logout-btn { background: none; border: none; color: #8688B8; font-size: 12px; display: flex; align-items: center; gap: 6px; margin-top: 12px; cursor: pointer; padding: 0; font-weight: 500; font-family: var(--font-body); box-shadow: none; }
+        .logout-btn:hover { color: white; background: none; box-shadow: none; }
+
+        .main { flex: 1; min-width: 0; padding: 30px 42px 60px; max-width: 1120px; }
+        .page-eyebrow { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #8FD8C9; margin-bottom: 6px; }
+
+        /* ---------- CARD (tomchi / liquid-glass oyna) ---------- */
+        .card {
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,0.035);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 22px 24px;
+            margin-bottom: 18px;
+            box-shadow: 0 14px 40px rgba(4,6,20,0.35), inset 0 1px 0 rgba(255,255,255,0.16);
+            backdrop-filter: url(#droplet-distort) saturate(150%) brightness(1.04);
+            -webkit-backdrop-filter: blur(14px) saturate(150%);
+            transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
+        }
+        .card::before {
+            content: ""; position: absolute; top: -14%; left: -6%; width: 55%; height: 34%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.20), transparent 70%);
+            filter: blur(6px); pointer-events: none;
+        }
+        .card::after {
+            content: ""; position: absolute; inset: 0; border-radius: inherit;
+            box-shadow: inset 0 -20px 40px rgba(0,0,0,0.16), inset 0 0 0 1px rgba(255,255,255,0.08);
+            pointer-events: none;
+        }
+        .card:hover { box-shadow: 0 18px 50px rgba(4,6,20,0.45), inset 0 1px 0 rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.26); }
+        .card h3:first-child, .card h2:first-child { margin-top: 0; }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .card-header h3 { display: flex; align-items: center; gap: 9px; margin: 0; }
+        .card-header h3 .icon { color: var(--primary); }
+
+        /* ---------- KPI STAT CARDS (ular ham tomchi oyna) ---------- */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 22px; }
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,0.035);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            box-shadow: 0 14px 40px rgba(4,6,20,0.35), inset 0 1px 0 rgba(255,255,255,0.16);
+            backdrop-filter: url(#droplet-distort) saturate(150%) brightness(1.04);
+            -webkit-backdrop-filter: blur(14px) saturate(150%);
+            transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+        }
+        .stat-card::before {
+            content: ""; position: absolute; top: -14%; left: -6%; width: 55%; height: 34%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.20), transparent 70%);
+            filter: blur(6px); pointer-events: none;
+        }
+        .stat-card::after {
+            content: ""; position: absolute; inset: 0; border-radius: inherit;
+            box-shadow: inset 0 -20px 40px rgba(0,0,0,0.16), inset 0 0 0 1px rgba(255,255,255,0.08);
+            pointer-events: none;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 18px 50px rgba(4,6,20,0.45), inset 0 1px 0 rgba(255,255,255,0.2); }
+        .stat-card .stat-icon {
+            width: 34px; height: 34px; border-radius: 10px; background: var(--primary-light);
+            display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
+            position: relative; z-index: 1;
+        }
+        .stat-card .stat-icon .icon { color: var(--primary); }
+        .stat-value { font-family: var(--font-display); font-size: 25px; font-weight: 700; line-height: 1; color: var(--ink); }
+        .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 4px; }
+
+        /* ---------- ALERTS ---------- */
+        .alert {
+            display: flex; align-items: center; gap: 9px;
+            padding: 11px 16px; border-radius: var(--radius-sm); margin-bottom: 16px;
+            font-size: 13.5px; font-weight: 500;
+            animation: slideIn 0.3s var(--ease);
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        .alert-success { background: var(--success-light); color: #15803D; border: 1px solid #A7E3BC; }
+        .alert-error { background: var(--danger-light); color: #B91C1C; border: 1px solid #F5B3B3; }
+        .alert-info { background: var(--primary-light); color: var(--primary-dark); border: 1px solid #C7D2FE; }
+
+        /* ---------- BUTTONS ---------- */
+        button, input[type="submit"], .btn {
+            font-family: var(--font-body); font-weight: 600; font-size: 13px;
+            padding: 9px 16px; border-radius: var(--radius-sm);
+            border: 1px solid var(--primary);
+            background: var(--primary);
+            color: white; cursor: pointer;
+            box-shadow: 0 1px 2px rgba(79,70,229,0.15);
+            transition: background 0.15s var(--ease), box-shadow 0.2s var(--ease), transform 0.15s var(--ease);
+            display: inline-flex; align-items: center; gap: 7px;
+        }
+        button:hover, input[type="submit"]:hover, .btn:hover {
+            background: var(--primary-dark); border-color: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+            text-decoration: none;
+        }
+        button:active, input[type="submit"]:active { transform: scale(0.97); }
+        .card a > button, .card a > .btn { margin-right: 8px; margin-bottom: 4px; }
+        .btn-ghost { background: var(--surface); color: var(--ink); border-color: var(--border); box-shadow: none; }
+        .btn-ghost:hover { background: var(--bg); border-color: var(--border); box-shadow: none; }
+        .btn-sm { padding: 5px 11px; font-size: 12px; border-radius: 7px; }
+        .btn-danger-ghost { background: var(--surface); color: var(--danger); border-color: #F5C2C2; box-shadow: none; }
+        .btn-danger-ghost:hover { background: var(--danger-light); border-color: var(--danger); box-shadow: none; }
+        .btn-success-ghost { background: var(--surface); color: var(--success); border-color: #A7E3BC; box-shadow: none; }
+        .btn-success-ghost:hover { background: var(--success-light); border-color: var(--success); box-shadow: none; }
+
+        /* --- AI (Gemini) baholash taklifi --- */
+        .ai-suggestion {
+            margin: 10px 0; padding: 12px 14px; border-radius: 10px;
+            background: rgba(245,166,35,0.10); border: 1px solid rgba(245,166,35,0.35);
+            color: #E7E8F5;
+        }
+        .ai-suggestion strong { color: var(--accent); }
+        .ai-suggestion p { margin: 6px 0 8px; color: #C7C9E8; font-size: 13.5px; line-height: 1.5; }
+        .ai-apply-btn {
+            background: var(--primary); color: white; border: none; border-radius: 7px;
+            padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+        }
+        .ai-apply-btn:hover { background: var(--primary-dark); }
+        .ai-pending { color: #9B9EBD; font-size: 13px; font-style: italic; margin: 6px 0; }
+        .ai-suggestion-sm { margin: 8px 0 0; padding: 8px 10px; max-width: 320px; }
+        .ai-suggestion-sm p { font-size: 12.5px; margin: 4px 0 6px; }
+        .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        /* ---------- FORMS (kirish maydonlari ham tomchi effektida) ---------- */
+        input[type="text"], input[type="password"], input[type="number"],
+        input[type="email"], input[type="url"], input[type="file"],
+        select, textarea {
+            font-family: var(--font-body); font-size: 13.5px; padding: 10px 13px;
+            border: 1px solid rgba(255,255,255,0.22); border-radius: var(--radius-sm);
+            background: rgba(255,255,255,0.05); color: var(--glass-ink);
+            width: 100%; max-width: 420px;
+            backdrop-filter: url(#droplet-distort) saturate(140%) brightness(1.05);
+            -webkit-backdrop-filter: blur(8px) saturate(140%);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 10px rgba(4,6,20,0.2);
+            transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease), background 0.15s var(--ease);
+        }
+        input::placeholder, textarea::placeholder { color: rgba(238,240,255,0.4); }
+        textarea { max-width: 100%; font-family: var(--font-body); }
+        input:focus, select:focus, textarea:focus {
+            outline: none; border-color: #38BDF8;
+            background: rgba(255,255,255,0.09);
+            box-shadow: 0 0 0 3px rgba(56,189,248,0.22), inset 0 1px 0 rgba(255,255,255,0.16);
+        }
+        select option { background: #14152B; color: var(--glass-ink); }
+        form p { margin-bottom: 14px; position: relative; z-index: 1; }
+        form label { display: block; font-weight: 600; font-size: 12.5px; margin-bottom: 5px; color: var(--glass-ink-soft); }
+        form ul.errorlist { color: #FF8A8A; font-size: 12px; list-style: none; padding: 0; margin: 4px 0; }
+
+        /* ---------- TABLE (shisha karta ichida) ---------- */
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; position: relative; z-index: 1; }
+        table th {
+            text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+            color: var(--glass-muted); font-weight: 700; padding: 9px 12px; border-bottom: 1px solid var(--glass-border);
+        }
+        table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 13.5px; }
+        table tr:last-child td { border-bottom: none; }
+        table tr { transition: background 0.15s var(--ease); }
+        table tr:hover td { background: rgba(255,255,255,0.04); }
+
+        /* ---------- BADGES ---------- */
+        .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+        .badge-success { background: var(--success-light); color: #15803D; }
+        .badge-warning { background: var(--accent-light); color: #B45309; }
+        .badge-muted { background: #EEF0F5; color: var(--muted); }
+        .badge-primary { background: var(--primary-light); color: var(--primary-dark); }
+        .badge-danger { background: var(--danger-light); color: #B91C1C; }
+
+        /* ---------- SCORE / PROGRESS ---------- */
+        .score-pill { font-family: var(--font-mono); font-weight: 600; font-size: 12.5px; background: var(--accent-light); color: #B45309; padding: 3px 10px; border-radius: 7px; }
+        .progress { background: rgba(255,255,255,0.14); border-radius: 999px; height: 7px; overflow: hidden; margin: 6px 0; }
+        .progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--primary), #8B5CF6); }
+
+        /* ---------- STEPPER ---------- */
+        .stepper { display: flex; margin: 16px 0 24px; }
+        .step { flex: 1; text-align: center; position: relative; }
+        .step:not(:last-child)::after { content: ''; position: absolute; top: 18px; left: 50%; width: 100%; height: 2px; background: var(--border); z-index: 0; }
+        .step.done:not(:last-child)::after { background: var(--success); }
+        .step-circle {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--surface); border: 2.5px solid var(--border); color: var(--muted-light);
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-display); font-weight: 700; font-size: 13px;
+            margin: 0 auto 8px; position: relative; z-index: 1;
+            transition: all 0.3s var(--ease);
+        }
+        .step.done .step-circle { background: var(--success); border-color: var(--success); color: white; }
+        .step.active .step-circle { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 0 0 5px var(--primary-light); }
+        .step-label { font-size: 11.5px; font-weight: 600; color: var(--muted); }
+        .step.active .step-label { color: var(--primary); }
+        .step.done .step-label { color: var(--success); }
+
+        /* ---------- MISC ---------- */
+        .empty-state { color: var(--muted-light); font-size: 13.5px; padding: 10px 0; text-align: center; }
+        .flex-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .divider { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 14px; }
+        .certificate-frame {
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,0.035);
+            border: 3px solid var(--primary);
+            border-radius: 20px; padding: 60px; text-align: center;
+            max-width: 760px; margin: 24px auto;
+            box-shadow: 0 18px 50px rgba(4,6,20,0.4), inset 0 1px 0 rgba(255,255,255,0.16);
+            backdrop-filter: url(#droplet-distort) saturate(150%) brightness(1.04);
+            -webkit-backdrop-filter: blur(14px) saturate(150%);
+        }
+        .certificate-frame::before {
+            content: ""; position: absolute; top: -14%; left: -6%; width: 55%; height: 34%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.20), transparent 70%);
+            filter: blur(6px); pointer-events: none;
+        }
+        @media (max-width: 800px) {
+            .app { flex-direction: column; }
+            .sidebar { width: 100%; flex-direction: row; align-items: center; flex-wrap: wrap; height: auto; position: static; }
+            .sidebar nav { flex-direction: row; flex-wrap: wrap; }
+            .main { padding: 20px; }
+        }
+
+        /* ---------- O'SUVCHI BILIM TARMOG'I (canvas fon, faqat kirish sahifasida) ---------- */
+        #bg-network { position: fixed; inset: 0; z-index: -1; display: block; background: #0A0C1F; }
+        #bg-globe { position: fixed; inset: 0; z-index: -1; display: block; }
+        body { background: transparent; }
+        html { background: #0A0C1F; }
+
+        /* ---------- Tizimga kirilgan holat uchun sokin, statik fon ---------- */
+        /* MUHIM: bu faqat <html> ga qo'llanadi, <body> ga emas — aks holda
+           body'ning o'z fon rangi z-index:-1 bo'lgan canvaslarni (globus)
+           ustidan bosib, ko'rinmas qilib qo'yadi (brauzerlarning mashhur
+           stacking-context xatosi). */
+        html.is-app {
+            background: radial-gradient(circle at 18% 0%, rgba(79,70,229,0.16), transparent 45%),
+                        radial-gradient(circle at 100% 100%, rgba(56,189,248,0.10), transparent 50%),
+                        linear-gradient(160deg, #10132A 0%, #14162F 55%, #0B0D20 100%);
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="{% if user.is_authenticated %}is-app{% else %}is-guest{% endif %}">
+
+<!-- Barcha .card/.stat-card/.certificate-frame "oyna"lari uchun tomchi (liquid-glass) buzilish filtri -->
+<svg style="position:absolute; width:0; height:0;" aria-hidden="true">
+    <filter id="droplet-distort">
+        <feTurbulence type="fractalNoise" baseFrequency="0.006 0.01" numOctaves="3" seed="7" result="noise"/>
+        <feGaussianBlur in="noise" stdDeviation="2" result="softNoise"/>
+        <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="45" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+</svg>
+
+{% if not user.is_authenticated %}<canvas id="bg-network"></canvas>{% else %}<canvas id="bg-globe"></canvas>{% endif %}
+
+<svg style="display:none" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></symbol>
+    <symbol id="i-plus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 016.5 2H20v17H6.5A2.5 2.5 0 004 21.5v-17z"/><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></symbol>
+    <symbol id="i-user-plus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></symbol>
+    <symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M8.5 13.5L7 22l5-3 5 3-1.5-8.5"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 2l9 5-9 5-9-5 9-5z"/><path d="M3 12l9 5 9-5"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
+    <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-3"/></symbol>
+</svg>
+
+{% if user.is_authenticated %}
+<div class="app">
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-mark">RA</div>
+            <div class="logo-text">Raqamli Avlod<small>O'quv markazi</small></div>
+        </div>
+        <nav>
+            {% if user.is_super_admin %}
+                <a href="{% url 'superadmin_dashboard' %}"><svg class="icon"><use href="#i-home"/></svg>Bosh sahifa</a>
+                <div class="nav-section-label">Boshqaruv</div>
+                <a href="{% url 'create_staff' %}"><svg class="icon"><use href="#i-user-plus"/></svg>Xodim qo'shish</a>
+                <a href="{% url 'create_course' %}"><svg class="icon"><use href="#i-book"/></svg>Yangi kurs</a>
+                <a href="{% url 'create_group' %}"><svg class="icon"><use href="#i-users"/></svg>Yangi guruh</a>
+                <a href="{% url 'showcase_list' %}"><svg class="icon"><use href="#i-layers"/></svg>Ko'rsatma</a>
+                <a href="{% url 'open_access_admin' %}"><svg class="icon"><use href="#i-layers"/></svg>Open Access</a>
+            {% elif user.is_admin_role %}
+                <a href="{% url 'admin_dashboard' %}"><svg class="icon"><use href="#i-home"/></svg>Bosh sahifa</a>
+                <div class="nav-section-label">Boshqaruv</div>
+                <a href="{% url 'register_student' %}"><svg class="icon"><use href="#i-user-plus"/></svg>Talaba qo'shish</a>
+                <a href="{% url 'register_observer' %}"><svg class="icon"><use href="#i-user-plus"/></svg>Kuzatuvchi qo'shish</a>
+                <a href="{% url 'monitoring' %}"><svg class="icon"><use href="#i-chart"/></svg>Monitoring</a>
+                <a href="{% url 'open_access_admin' %}"><svg class="icon"><use href="#i-layers"/></svg>Open Access</a>
+            {% elif user.is_teacher %}
+                <a href="{% url 'teacher_dashboard' %}"><svg class="icon"><use href="#i-home"/></svg>Bosh sahifa</a>
+            {% elif user.is_student %}
+                <a href="{% url 'student_dashboard' %}"><svg class="icon"><use href="#i-home"/></svg>Bosh sahifa</a>
+                <div class="nav-section-label">Shaxsiy</div>
+                <a href="{% url 'student_grades' %}"><svg class="icon"><use href="#i-chart"/></svg>Baholarim</a>
+                <a href="{% url 'student_certificates' %}"><svg class="icon"><use href="#i-award"/></svg>Sertifikatlarim</a>
+            {% elif user.is_observer %}
+                <a href="{% url 'observer_dashboard' %}"><svg class="icon"><use href="#i-home"/></svg>Bosh sahifa</a>
+            {% elif user.is_open_access %}
+                <a href="{% url 'open_access_dashboard' %}"><svg class="icon"><use href="#i-home"/></svg>Mening kursim</a>
+            {% endif %}
+        </nav>
+        <div class="user-box">
+            <div class="user-row">
+                <span class="user-avatar">{{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}</span>
+                <div>
+                    <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                    <span class="role-tag">{{ user.get_role_display }}</span>
+                </div>
+            </div>
+            <form method="post" action="{% url 'logout' %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn"><svg class="icon"><use href="#i-logout"/></svg>Chiqish</button>
+            </form>
+        </div>
+    </aside>
+    <div class="main">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% else %}alert-info{% endif %}">
+                    <svg class="icon"><use href="#i-check"/></svg>{{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+</div>
+{% else %}
+<div style="min-height:100vh;position:relative;">
+    <div style="position:fixed; top:20px; right:24px; z-index:50; display:flex; gap:10px;">
+        <button type="button" id="open-register-btn" class="btn-ghost">
+            <svg class="icon"><use href="#i-user-plus"/></svg>Ro'yxatdan o'tish
+        </button>
+        <button type="button" id="open-login-btn" class="btn">
+            <svg class="icon"><use href="#i-lock"/></svg>Tizimga kirish
+        </button>
+    </div>
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;">
+        {% block auth_content %}{% endblock %}
+    </div>
+</div>
+{% endif %}
+
+<script>
+// Nozik 3D "tilt" effekti — sichqoncha karta ustida harakatlanganda karta yengil egiladi (iOS uslubi)
+(function () {
+    var cards = document.querySelectorAll('.card, .stat-card');
+    cards.forEach(function (card) {
+        card.addEventListener('mousemove', function (e) {
+            var rect = card.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+            var rotateX = ((y / rect.height) - 0.5) * -4;
+            var rotateY = ((x / rect.width) - 0.5) * 4;
+            card.style.transform = 'perspective(800px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) translateY(-2px)';
+        });
+        card.addEventListener('mouseleave', function () {
+            card.style.transform = 'perspective(800px) rotateX(0) rotateY(0) translateY(0)';
+        });
+    });
+})();
+</script>
+
+<script>
+// ============================================================
+//  "RAQAMLI AVLOD" — O'SUVCHI BILIM TARMOG'I (canvas fon animatsiyasi)
+//  G'oya: bitta ildizdan yelpig'ich shaklida yuqoriga yoyiluvchi tarmoq
+//  (bilim daraxti), ildizdan barglarga tomon suzuvchi yorug' pulslar
+//  ("bilim uzatilishi"), rangli porlovchi tugunlar, suzuvchi raqamli
+//  belgilar, va sichqonchaga javob beruvchi tugunlar.
+(function () {
+    var canvas = document.getElementById('bg-network');
+    if (!canvas || !canvas.getContext) return;
+    var ctx = canvas.getContext('2d');
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var W, H, DPR;
+    var trees = [];
+    var allNodes = [];
+    var pulses = [];
+    var chars = [];
+    var mouse = { x: -9999, y: -9999 };
+    var frame = 0;
+
+    var CHAR_SET = ['0', '1', '<', '>', '{', '}', '/'];
+    var MAX_DEPTH = 3;
+    var GLOW_COLORS = ['34,211,238', '52,211,153', '167,139,250', '96,165,250'];
+
+    function resize() {
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W * DPR;
+        canvas.height = H * DPR;
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        buildTrees();
+    }
+
+    // Bitta ildizdan yelpig'ich shaklida yoyiluvchi tarmoq (3 qatlamli shoxlanish)
+    function buildFan(rootX, rootY) {
+        var nodes = [];
+        var root = {
+            x: rootX, y: rootY, baseX: rootX, baseY: rootY, depth: 0, parent: null,
+            phase: Math.random() * Math.PI * 2, sway: 1, angle: -Math.PI / 2, glowColor: null,
+        };
+        nodes.push(root);
+
+        var primaryCount = 15;
+        var layer1 = [];
+        for (var i = 0; i < primaryCount; i++) {
+            var spreadT = primaryCount === 1 ? 0.5 : i / (primaryCount - 1);
+            var angle = -Math.PI / 2 + (-1.2 + 2.4 * spreadT) + (Math.random() - 0.5) * 0.08;
+            var r1 = H * 0.34 + (Math.random() - 0.5) * H * 0.07;
+            var x = rootX + Math.cos(angle) * r1;
+            var y = rootY + Math.sin(angle) * r1;
+            var n = mkNode(x, y, 1, root, angle);
+            nodes.push(n);
+            layer1.push(n);
+        }
+
+        var layer2 = [];
+        layer1.forEach(function (parent) {
+            var branches = Math.random() < 0.65 ? 2 : 1;
+            for (var k = 0; k < branches; k++) {
+                var a2 = parent.angle + (Math.random() - 0.5) * 0.7;
+                var r2 = H * 0.18 + (Math.random() - 0.5) * H * 0.05;
+                var x2 = parent.x + Math.cos(a2) * r2;
+                var y2 = parent.y + Math.sin(a2) * r2;
+                var n2 = mkNode(x2, y2, 2, parent, a2);
+                nodes.push(n2);
+                layer2.push(n2);
+            }
+        });
+
+        layer2.forEach(function (parent) {
+            var branches = Math.random() < 0.55 ? 2 : 1;
+            for (var k2 = 0; k2 < branches; k2++) {
+                var a3 = parent.angle + (Math.random() - 0.5) * 0.8;
+                var r3 = H * 0.09 + (Math.random() - 0.5) * H * 0.03;
+                var x3 = parent.x + Math.cos(a3) * r3;
+                var y3 = parent.y + Math.sin(a3) * r3;
+                var n3 = mkNode(x3, y3, 3, parent, a3);
+                nodes.push(n3);
+            }
+        });
+
+        return nodes;
+    }
+
+    function mkNode(x, y, depth, parent, angle) {
+        return {
+            x: x, y: y, baseX: x, baseY: y, depth: depth, parent: parent, angle: angle,
+            phase: Math.random() * Math.PI * 2, sway: 0.6 + depth * 0.5,
+            glowColor: Math.random() < 0.055 ? GLOW_COLORS[Math.floor(Math.random() * GLOW_COLORS.length)] : null,
+            glowPhase: Math.random() * Math.PI * 2,
+        };
+    }
+
+    function buildTrees() {
+        trees = [buildFan(W * 0.35, H * 1.04)];
+        allNodes = trees[0];
+    }
+
+    function getLeaves(nodes) {
+        return nodes.filter(function (n) { return n.depth === MAX_DEPTH; });
+    }
+
+    function spawnPulse() {
+        var tree = trees[0];
+        var leaves = getLeaves(tree);
+        if (!leaves.length) return;
+        var leaf = leaves[Math.floor(Math.random() * leaves.length)];
+        var path = [];
+        var n = leaf;
+        while (n) { path.unshift(n); n = n.parent; }
+        pulses.push({ path: path, segIndex: 0, t: 0, speed: 0.022 + Math.random() * 0.014 });
+    }
+
+    function spawnChar() {
+        chars.push({
+            char: CHAR_SET[Math.floor(Math.random() * CHAR_SET.length)],
+            x: Math.random() * W,
+            y: H * 0.15 + Math.random() * H * 0.75,
+            vy: 0.08 + Math.random() * 0.12,
+            life: 0,
+            maxLife: 700 + Math.random() * 500,
+            size: 16 + Math.random() * 14,
+        });
+    }
+
+    function updateAndDraw(time) {
+        var bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+        bgGrad.addColorStop(0, '#141a3d');
+        bgGrad.addColorStop(0.55, '#0d1130');
+        bgGrad.addColorStop(1, '#06081a');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, W, H);
+
+        // --- Tugunlarning organik tebranishi ---
+        var t = time * 0.0007;
+        // --- Shabada: butun tarmoqni sekin, birgalikda tebratuvchi shamol effekti ---
+        var windT = time * 0.00022;
+        var wind = Math.sin(windT) * 0.65 + Math.sin(windT * 1.8 + 1.1) * 0.35;
+        allNodes.forEach(function (n) {
+            var windPush = wind * n.depth * 3.4;
+            n.x = n.baseX + Math.sin(t + n.phase) * n.sway + windPush;
+            n.y = n.baseY + Math.cos(t * 0.8 + n.phase) * (n.sway * 0.6) + windPush * 0.22;
+        });
+
+        // --- Shoxlar (chiziqlar) ---
+        allNodes.forEach(function (n) {
+            if (!n.parent) return;
+            var alpha = 0.26 - n.depth * 0.045;
+            ctx.strokeStyle = 'rgba(210,215,255,' + Math.max(alpha, 0.07) + ')';
+            ctx.lineWidth = Math.max(1.4 - n.depth * 0.25, 0.5);
+            ctx.beginPath();
+            ctx.moveTo(n.parent.x, n.parent.y);
+            ctx.lineTo(n.x, n.y);
+            ctx.stroke();
+        });
+
+        // --- Tugunlar (rangli porlovchi + sichqonchaga sezgir) ---
+        allNodes.forEach(function (n) {
+            var dx = n.x - mouse.x, dy = n.y - mouse.y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            var hoverGlow = Math.max(0, 1 - dist / 130);
+            var baseR = n.depth === 0 ? 4.5 : Math.max(3.2 - n.depth * 0.5, 1.4);
+
+            if (n.glowColor) {
+                var pulseGlow = 0.55 + 0.45 * Math.sin(t * 1.4 + n.glowPhase);
+                var r = baseR + 1.5 + hoverGlow * 3;
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(' + n.glowColor + ',' + (0.9 * pulseGlow) + ')';
+                ctx.shadowColor = 'rgba(' + n.glowColor + ',1)';
+                ctx.shadowBlur = 16 * pulseGlow + hoverGlow * 12;
+                ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            } else {
+                var r2 = baseR + hoverGlow * 3.5;
+                if (hoverGlow > 0.03) {
+                    ctx.beginPath();
+                    ctx.fillStyle = 'rgba(56,189,248,' + (0.45 * hoverGlow) + ')';
+                    ctx.shadowColor = 'rgba(56,189,248,0.9)';
+                    ctx.shadowBlur = 14 * hoverGlow;
+                    ctx.arc(n.x, n.y, r2 + 4 * hoverGlow, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(226,229,255,' + (0.55 - n.depth * 0.08) + ')';
+                ctx.arc(n.x, n.y, r2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+
+        // --- Bilim pulslari (ildizdan barglarga) ---
+        for (var i = pulses.length - 1; i >= 0; i--) {
+            var p = pulses[i];
+            var a = p.path[p.segIndex];
+            var b = p.path[p.segIndex + 1];
+            if (!a || !b) { pulses.splice(i, 1); continue; }
+            var px = a.x + (b.x - a.x) * p.t;
+            var py = a.y + (b.y - a.y) * p.t;
+
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(125,211,252,0.95)';
+            ctx.shadowColor = 'rgba(125,211,252,0.9)';
+            ctx.shadowBlur = 11;
+            ctx.arc(px, py, 2.4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            p.t += p.speed;
+            if (p.t >= 1) { p.t = 0; p.segIndex++; }
+        }
+
+        // --- Suzuvchi raqamli belgilar ---
+        ctx.textAlign = 'center';
+        for (var j = chars.length - 1; j >= 0; j--) {
+            var c = chars[j];
+            c.y -= c.vy;
+            c.life++;
+            var lifeRatio = c.life / c.maxLife;
+            var fadeIn = Math.min(c.life / 60, 1);
+            var fadeOut = 1 - Math.max((lifeRatio - 0.75) / 0.25, 0);
+            var op = Math.min(fadeIn, fadeOut) * 0.22;
+            ctx.fillStyle = 'rgba(210,215,255,' + op + ')';
+            ctx.font = '500 ' + c.size + 'px "JetBrains Mono", monospace';
+            ctx.fillText(c.char, c.x, c.y);
+            if (c.life > c.maxLife) chars.splice(j, 1);
+        }
+
+        frame++;
+        if (frame % 65 === 0) spawnPulse();
+        if (frame % 90 === 0) spawnChar();
+
+        if (!reduceMotion) requestAnimationFrame(updateAndDraw);
+    }
+
+    window.addEventListener('mousemove', function (e) { mouse.x = e.clientX; mouse.y = e.clientY; });
+    window.addEventListener('mouseout', function () { mouse.x = -9999; mouse.y = -9999; });
+
+    var resizeTimer;
+    window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(resize, 200);
+    });
+
+    resize();
+    if (reduceMotion) {
+        updateAndDraw(0);
+    } else {
+        for (var k = 0; k < 8; k++) spawnChar();
+        requestAnimationFrame(updateAndDraw);
+    }
+})();
+</script>
+
+{% if user.is_authenticated %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<script>
+// ============================================================
+//  RAQAMLI GLOBUS — tizimga kirgandan keyingi (dashboard) fon animatsiyasi
+//  Haqiqiy geografik ma'lumotlar (TopoJSON, d3.geoOrthographic) asosida —
+//  aylanuvchi globus, yorishuvchi shahar tugunlari, ular orasidagi
+//  bog'lanish yoylari va qit'a chegaralarida yorqin porlash (glow) effekti.
+(function () {
+    var canvas = document.getElementById('bg-globe');
+    if (!canvas || !canvas.getContext) return;
+    var ctx = canvas.getContext('2d');
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var W, H, DPR, R, cx, cy;
+    var tilt = -18;
+    var rotation = 0;
+    var autoRotate = true;
+    var idleTimer = null;
+
+    var projection = d3.geoOrthographic().clipAngle(90).precision(0.3);
+    var path = d3.geoPath(projection, ctx);
+    var graticule = d3.geoGraticule10();
+    var land = null;
+
+    d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json').then(function (world) {
+        land = topojson.feature(world, world.objects.land);
+    }).catch(function (e) { console.error('Globus uchun xarita ma\'lumotlari yuklanmadi', e); });
+
+    // --- Shahar tugunlari va ular orasidagi bog'lanish yoylari ---
+    var cityCoords = [
+        [-74, 40], [2, 48], [139, 35], [-46, -23], [151, -33], [37, 55], [77, 28],
+        [31, 30], [-99, 19], [103, 1], [28, -26], [121, 31], [13, 52], [-3, 40],
+    ];
+    var nodes = cityCoords.map(function (c) {
+        return { lon: c[0], lat: c[1], phase: Math.random() * Math.PI * 2, speed: 0.03 + Math.random() * 0.03 };
+    });
+    var arcs = [];
+    for (var i = 0; i < 9; i++) {
+        var a = nodes[Math.floor(Math.random() * nodes.length)];
+        var b = nodes[Math.floor(Math.random() * nodes.length)];
+        arcs.push({ from: [a.lon, a.lat], to: [b.lon, b.lat], offset: Math.random() * 100, speed: 0.3 + Math.random() * 0.4 });
+    }
+
+    var outerParticles = [];
+    for (var j = 0; j < 20; j++) {
+        outerParticles.push({
+            angle: Math.random() * Math.PI * 2,
+            radiusFactor: 1.08 + Math.random() * 0.45,
+            speed: (0.003 + Math.random() * 0.008) * (Math.random() > 0.5 ? 1 : -1),
+            tilt: 0.3 + Math.random() * 0.25,
+            size: 1 + Math.random() * 1.6,
+        });
+    }
+
+    function resize() {
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W * DPR;
+        canvas.height = H * DPR;
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        R = Math.min(W, H) * 0.3;
+        cx = W * 0.76;
+        cy = H * 0.42;
+        projection.scale(R).translate([cx, cy]);
+    }
+
+    function draw() {
+        if (autoRotate) rotation += 0.15;
+        projection.rotate([rotation, tilt]);
+        ctx.clearRect(0, 0, W, H);
+        ctx.save();
+
+        // --- orqa fondagi nur chiziqlari ---
+        for (var k = 0; k < 14; k++) {
+            var ang = (k / 14) * Math.PI * 2 + rotation * 0.01;
+            var grad = ctx.createLinearGradient(cx, cy, cx + Math.cos(ang) * W, cy + Math.sin(ang) * W);
+            grad.addColorStop(0, 'rgba(34,211,238,0.05)');
+            grad.addColorStop(1, 'rgba(34,211,238,0)');
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = 10;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(ang) * W, cy + Math.sin(ang) * W);
+            ctx.stroke();
+        }
+
+        // --- atrofda suzuvchi zarrachalar ---
+        outerParticles.forEach(function (p) {
+            p.angle += p.speed;
+            var radius = R * p.radiusFactor;
+            var x = cx + Math.cos(p.angle) * radius;
+            var y = cy + Math.sin(p.angle) * radius * p.tilt;
+            var depth = (Math.sin(p.angle) + 1) / 2;
+            ctx.globalAlpha = 0.16 + depth * 0.4;
+            ctx.fillStyle = '#67E8F9';
+            ctx.beginPath();
+            ctx.arc(x, y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+
+        // --- tashqi porlash halqasi ---
+        var rim = ctx.createRadialGradient(cx, cy, R * 0.72, cx, cy, R * 1.12);
+        rim.addColorStop(0, 'rgba(34,211,238,0)');
+        rim.addColorStop(0.85, 'rgba(56,189,248,0.4)');
+        rim.addColorStop(1, 'rgba(103,232,249,0)');
+        ctx.fillStyle = rim;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R * 1.12, 0, Math.PI * 2);
+        ctx.fill();
+
+        // --- globus "korpusi" (okean) ---
+        ctx.beginPath();
+        path({ type: 'Sphere' });
+        var body = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, R * 0.1, cx, cy, R);
+        body.addColorStop(0, 'rgba(19,52,74,0.75)');
+        body.addColorStop(1, 'rgba(2,6,9,0.75)');
+        ctx.fillStyle = body;
+        ctx.fill();
+
+        // --- kenglik/uzunlik to'r chizig'i ---
+        ctx.beginPath();
+        path(graticule);
+        ctx.strokeStyle = 'rgba(56,189,248,0.16)';
+        ctx.lineWidth = 0.6;
+        ctx.stroke();
+
+        // --- materiklar: to'ldirish + qirg'oq chizig'ida porlash (glow) effekti ---
+        if (land) {
+            ctx.beginPath();
+            path(land);
+            ctx.fillStyle = 'rgba(18,64,88,0.82)';
+            ctx.fill();
+
+            // xira porlash (glow) qatlami — chiziq atrofida yumshoq nur
+            ctx.save();
+            ctx.shadowColor = 'rgba(103,232,249,0.95)';
+            ctx.shadowBlur = 9;
+            ctx.strokeStyle = 'rgba(103,232,249,0.55)';
+            ctx.lineWidth = 2.4;
+            ctx.beginPath();
+            path(land);
+            ctx.stroke();
+            ctx.restore();
+
+            // tiniq, yorqin qirg'oq chizig'i (glow ustida)
+            ctx.beginPath();
+            path(land);
+            ctx.strokeStyle = 'rgba(220,245,250,0.95)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        // --- bog'lanish yoylari (shaharlar orasida) ---
+        arcs.forEach(function (arc) {
+            arc.offset += arc.speed;
+            var p1 = projection(arc.from);
+            var p2 = projection(arc.to);
+            if (!p1 || !p2) return;
+            var mx = (p1[0] + p2[0]) / 2, my = (p1[1] + p2[1]) / 2 - R * 0.22;
+            ctx.strokeStyle = 'rgba(251,146,60,0.4)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 5]);
+            ctx.lineDashOffset = -arc.offset;
+            ctx.beginPath();
+            ctx.moveTo(p1[0], p1[1]);
+            ctx.quadraticCurveTo(mx, my, p2[0], p2[1]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        });
+
+        // --- yorishuvchi shahar tugunlari ---
+        nodes.forEach(function (n) {
+            n.phase += n.speed;
+            var pt = projection([n.lon, n.lat]);
+            if (!pt) return;
+            var glow = (Math.sin(n.phase) + 1) / 2;
+            ctx.fillStyle = 'rgba(253,186,116,' + (0.4 + glow * 0.5) + ')';
+            ctx.shadowColor = 'rgba(253,186,116,0.9)';
+            ctx.shadowBlur = 6 + glow * 6;
+            ctx.beginPath();
+            ctx.arc(pt[0], pt[1], 1.5 + glow * 1.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // --- tashqi kontur ---
+        ctx.beginPath();
+        path({ type: 'Sphere' });
+        ctx.strokeStyle = 'rgba(103,232,249,0.45)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.restore();
+        if (!reduceMotion) requestAnimationFrame(draw);
+    }
+
+    var resizeTimer;
+    window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(resize, 200);
+    });
+
+    // --- Sichqoncha / barmoq bilan tortib aylantirish ---
+    canvas.style.cursor = 'grab';
+    canvas.style.touchAction = 'none';
+    canvas.style.pointerEvents = 'auto';
+
+    function wakeUpForFrame() {
+        // reduceMotion holatida animatsiya sikli ishlamaydi, shu sabab
+        // tortish paytida har bir harakatdan keyin qo'lda bitta kadr chizamiz.
+        if (reduceMotion) draw();
+    }
+
+    d3.select(canvas).call(
+        d3.drag()
+            .on('start', function () {
+                autoRotate = false;
+                clearTimeout(idleTimer);
+                canvas.style.cursor = 'grabbing';
+            })
+            .on('drag', function (event) {
+                rotation += event.dx * 0.28;
+                tilt = Math.max(-80, Math.min(80, tilt - event.dy * 0.28));
+                wakeUpForFrame();
+            })
+            .on('end', function () {
+                canvas.style.cursor = 'grab';
+                // Foydalanuvchi qo'yib yubordi — qisqa kutishdan so'ng
+                // globus yana o'zi aylanishni davom ettiradi.
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(function () { autoRotate = true; }, 2500);
+            })
+    );
+
+    resize();
+    if (reduceMotion) { draw(); } else { requestAnimationFrame(draw); }
+})();
+</script>
+{% endif %}
+</body>
+</html>

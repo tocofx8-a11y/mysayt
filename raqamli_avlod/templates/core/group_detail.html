@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ group.name }} — boshqarish{% endblock %}
+{% block content %}
+<h1>{{ group.name }} <small>({{ group.course.name }})</small></h1>
+<p><a href="{% url 'admin_dashboard' %}">&larr; Admin paneliga qaytish</a> |
+   <a href="{% url 'issue_certificate' group.id %}">🎓 Sertifikat berish</a></p>
+
+<div class="card">
+    <h3>Yangi talaba biriktirish</h3>
+    <form method="post">
+        {% csrf_token %}
+        <select name="student_id" required>
+            <option value="">— talabani tanlang —</option>
+            {% for s in available_students %}
+            <option value="{{ s.id }}">{{ s.get_full_name }} ({{ s.username }})</option>
+            {% endfor %}
+        </select>
+        <button type="submit" name="add_student" value="1">Biriktirish</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Guruh a'zolari ({{ memberships.count }})</h3>
+    <table>
+        <tr><th>Ism familiya</th><th>Login</th><th>Qo'shilgan</th><th></th></tr>
+        {% for m in memberships %}
+        <tr>
+            <td>{{ m.student.get_full_name }}</td>
+            <td>{{ m.student.username }}</td>
+            <td>{{ m.joined_at|date:"d.m.Y" }}</td>
+            <td>
+                <form method="post" action="{% url 'remove_student_from_group' group.id m.id %}" style="display:inline;"
+                      onsubmit="return confirm('{{ m.student.get_full_name }} ni guruhdan chiqarishni tasdiqlaysizmi?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-sm btn-danger-ghost">Chiqarish</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}<tr><td colspan="4">Guruhda hali talaba yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+
+<div class="card">
+    <h3>Nazorat ishlari</h3>
+    <a href="{% url 'create_control_exam' group.id %}"><button type="button">+ Nazorat ishi joylash</button></a>
+    <table>
+        <tr><th>Nomi</th><th>Maks. ball</th><th>Joylangan</th><th></th></tr>
+        {% for e in exams %}
+        <tr>
+            <td>{{ e.title }}</td>
+            <td>{{ e.max_score }}</td>
+            <td>{{ e.created_at|date:"d.m.Y H:i" }}</td>
+            <td><a href="{% url 'grade_control_exam' e.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-chart"/></svg>Baholash</button></a></td>
+        </tr>
+        {% empty %}<tr><td colspan="4">Hali nazorat ishlari yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+{% endblock %}

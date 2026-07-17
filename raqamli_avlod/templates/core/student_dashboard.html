@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Talaba paneli{% endblock %}
+{% block content %}
+<div class="page-eyebrow">Talaba</div>
+<h1>Bosh sahifa</h1>
+
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-chart"/></svg>Tezkor havolalar</h3></div>
+    <a href="{% url 'student_grades' %}"><button type="button"><svg class="icon"><use href="#i-chart"/></svg>Baholarim</button></a>
+    <a href="{% url 'student_certificates' %}"><button type="button" class="btn-ghost"><svg class="icon"><use href="#i-award"/></svg>Sertifikatlarim</button></a>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-users"/></svg>Sizning guruhlaringiz</h3></div>
+    <table>
+        <tr><th>Guruh</th><th>Kurs</th><th></th></tr>
+        {% for m in memberships %}
+        <tr>
+            <td><strong>{{ m.group.name }}</strong></td>
+            <td>{{ m.group.course.name }}</td>
+            <td><a href="{% url 'student_group_lessons' m.group.id %}">Darslarni ko'rish →</a></td>
+        </tr>
+        {% empty %}<tr><td colspan="3" class="empty-state">Siz hali hech qaysi guruhga biriktirilmagansiz</td></tr>{% endfor %}
+    </table>
+</div>
+{% endblock %}

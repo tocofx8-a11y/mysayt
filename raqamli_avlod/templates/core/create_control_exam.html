@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Nazorat ishi joylash{% endblock %}
+{% block content %}
+<div class="card" style="max-width:520px;">
+    <h2>{{ group.name }} guruhi uchun nazorat ishi</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Joylash</button>
+        <a href="{% url 'group_detail' group.id %}">Bekor qilish</a>
+    </form>
+</div>
+{% endblock %}

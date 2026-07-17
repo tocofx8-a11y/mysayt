@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Tahrirlash — {{ staff.get_full_name }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;">
+    <h2>Kuzatuvchini tahrirlash</h2>
+    <p><small>Login: {{ staff.username }}</small></p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Saqlash</button>
+        <a href="{% url 'admin_dashboard' %}">Bekor qilish</a>
+    </form>
+</div>
+{% endblock %}

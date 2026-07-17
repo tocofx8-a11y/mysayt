@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Open Access boshqaruvi{% endblock %}
+{% block content %}
+<h1>Open Access boshqaruvi</h1>
+<p class="empty-state" style="margin-top:-4px;">Saytdan o'zi ro'yxatdan o'tgan foydalanuvchilar va ularning kurslari. Bu foydalanuvchilarning uyga vazifalarini AI to'liq avtomatik baholaydi.</p>
+
+<div class="card">
+    <h3>Kurslar</h3>
+    <div class="flex-row" style="flex-wrap:wrap;gap:12px;margin-top:10px;">
+        {% for course in courses %}
+        <a href="{% url 'open_access_course_lessons' course.id %}" style="text-decoration:none;">
+            <div class="stat-card" style="min-width:170px;cursor:pointer;">
+                <h3 style="margin:0;">{{ course.name }}</h3>
+                <small>{{ course.open_lessons.count }} ta dars</small>
+            </div>
+        </a>
+        {% empty %}
+        <p class="empty-state">Hali kurs yaratilmagan. Avval "Yangi kurs" orqali kurs qo'shing.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card">
+    <h3>Open Access foydalanuvchilari</h3>
+    <table>
+        <tr><th>Ism Familiya</th><th>Login</th><th>Telefon</th><th>Yozilgan kursi</th><th>Holati</th></tr>
+        {% for p in profiles %}
+        <tr>
+            <td>{{ p.user.get_full_name|default:p.user.username }}</td>
+            <td>{{ p.user.username }}</td>
+            <td>{{ p.user.phone|default:"-" }}</td>
+            <td>{{ p.course.name }}</td>
+            <td>
+                {% if p.user.is_active %}<span class="badge badge-success">✓ Faol</span>
+                {% else %}<span class="badge badge-muted">Faolsizlantirilgan</span>{% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty-state">Hali ro'yxatdan o'tgan foydalanuvchi yo'q</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

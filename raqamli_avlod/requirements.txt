@@ -1,0 +1,10 @@
+Django>=5.2
+Pillow>=10.0
+pyTelegramBotAPI>=4.14,<5
+
+# AI baholash (Gemini) uchun: fayldan matn ajratib olish
+python-docx>=1.1
+pypdf>=4.0
+
+# Ko'rsatma bo'limida Word fayldan rasm bilan HTML olish uchun
+mammoth>=1.7

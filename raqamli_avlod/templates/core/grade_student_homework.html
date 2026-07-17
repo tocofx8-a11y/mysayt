@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ student.get_full_name }} — baholash{% endblock %}
+{% block content %}
+<h1>{{ student.get_full_name }} — {{ lesson.title }}</h1>
+<p><a href="{% url 'grade_homework_list' lesson.id %}">&larr; Ro'yxatga qaytish</a></p>
+
+<div class="card">
+    <h3>Umumiy ball: {{ score.total }} / {{ score.max_total }}</h3>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="card">
+        <p><strong>1-qism — Video:</strong>
+            {% if video_done %}✅ Ko'rgan (avtomatik {{ score.video_score }} ball){% else %}⬜ Ko'rmagan{% endif %}
+        </p>
+    </div>
+
+    <div class="card">
+        <p><strong>2-qism — Topshiriq:</strong></p>
+        {% for row in task_rows %}
+        <p>
+            {{ row.level.get_level_display }} ({{ row.level.max_score }} ball):
+            {% if row.submission and row.submission.answer_file %}
+                <a href="{{ row.submission.answer_file.url }}" target="_blank">faylni ko'rish</a>
+                — Ball: <input type="number" id="task_input_{{ row.level.level }}" name="task_{{ row.level.level }}"
+                    min="0" max="{{ row.level.max_score }}"
+                    value="{{ row.submission.score|default_if_none:'' }}" style="width:70px;">
+            {% if row.submission.ai_checked_at %}
+                <div class="ai-suggestion">
+                    🤖 <strong>AI taklifi: {{ row.submission.ai_score|default_if_none:"?" }}/{{ row.level.max_score }}</strong>
+                    <p>{{ row.submission.ai_feedback }}</p>
+                    {% if row.submission.ai_score is not None %}
+                    <button type="button" class="ai-apply-btn" onclick="document.getElementById('task_input_{{ row.level.level }}').value={{ row.submission.ai_score }};">AI taklifini qo'llash</button>
+                    {% endif %}
+                </div>
+            {% elif row.submission.answer_file %}
+                <p class="ai-pending">🤖 AI hali tekshirmoqda yoki mavjud emas...</p>
+            {% endif %}
+            {% else %}
+                yuklanmagan — <em>baholab bo'lmaydi</em>
+            {% endif %}
+        </p>
+        {% endfor %}
+    </div>
+
+    <div class="card">
+        <p><strong>3-qism — Savol-javoblar:</strong></p>
+        {% for row in question_rows %}
+        <p>{{ row.question.text }}</p>
+        <blockquote style="margin-left:0;padding-left:10px;border-left:3px solid #ddd;">
+            {{ row.answer_text|default:"(hali javob yozmagan)" }}
+        </blockquote>
+        {% empty %}<p>Savol yo'q</p>{% endfor %}
+        {{ grade_form.questions_score.label_tag }} {{ grade_form.questions_score }}
+    </div>
+
+    <div class="card">
+        <p><strong>4-qism — Quiz:</strong>
+            {% if quiz_result %}
+                ✅ {{ quiz_result.correct_count }}/{{ quiz_result.total_count }} — {{ quiz_result.score }} ball (avtomatik)
+            {% else %}
+                ⬜ Hali topshirmagan
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="card">
+        <p><strong>Faollik:</strong> {{ grade_form.activity_score.label_tag }} {{ grade_form.activity_score }}</p>
+    </div>
+
+    <button type="submit">Baholarni saqlash</button>
+</form>
+{% endblock %}

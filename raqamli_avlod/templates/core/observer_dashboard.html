@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Kuzatuv paneli{% endblock %}
+{% block content %}
+<div class="page-eyebrow">Kuzatuvchi</div>
+<h1>Kuzatuv paneli</h1>
+
+{% if not student %}
+<div class="card empty-state">Sizga hali hech qanday talaba biriktirilmagan. Admin bilan bog'laning.</div>
+{% else %}
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-users"/></svg>Kuzatilayotgan talaba</h3></div>
+    <p style="font-size:17px;font-weight:700;">{{ student.get_full_name }}</p>
+    <p><small>Login: {{ student.username }}</small></p>
+</div>
+
+{% for gd in groups_data %}
+<div class="card">
+    <div class="card-header">
+        <h3><svg class="icon"><use href="#i-book"/></svg>{{ gd.group.name }} <small>({{ gd.group.course.name }})</small></h3>
+        <a href="{% url 'observer_rating' gd.group.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-award"/></svg>Reytingni ko'rish</button></a>
+    </div>
+
+    <table>
+        <tr><th>Dars</th><th>Video</th><th>Topshiriq</th><th>Savollar</th><th>Quiz</th><th>Faollik</th><th>Jami</th></tr>
+        {% for row in gd.rows %}
+        <tr>
+            <td>{{ row.lesson.title }}</td>
+            <td>{{ row.score.video_score }}/{{ row.lesson.homework.VIDEO_SCORE }}</td>
+            <td>{{ row.score.task_score }}/{{ row.lesson.homework.TASK_TOTAL_SCORE }}</td>
+            <td>{{ row.score.questions_score }}/{{ row.lesson.homework.QUESTIONS_SCORE }}</td>
+            <td>{{ row.score.quiz_score }}/{{ row.lesson.homework.QUIZ_SCORE }}</td>
+            <td>{{ row.score.activity_score }}/{{ row.lesson.homework.ACTIVITY_SCORE }}</td>
+            <td><span class="score-pill">{{ row.score.total }}/{{ row.score.max_total }}</span></td>
+        </tr>
+        {% empty %}<tr><td colspan="7" class="empty-state">Hali dars yo'q</td></tr>{% endfor %}
+    </table>
+
+    {% if gd.exam_rows %}
+    <h3 style="margin-top:18px;">Nazorat ishlari</h3>
+    <table>
+        <tr><th>Nomi</th><th>Ball</th></tr>
+        {% for er in gd.exam_rows %}
+        <tr>
+            <td>{{ er.exam.title }}</td>
+            <td>{% if er.score is not None %}<span class="score-pill">{{ er.score }}/{{ er.exam.max_score }}</span>{% else %}<span class="badge badge-muted">Baholanmagan</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+</div>
+{% empty %}
+<div class="card empty-state">Talaba hali hech qaysi guruhga biriktirilmagan.</div>
+{% endfor %}
+
+<div class="card" style="text-align:center;">
+    {% if confirmation and not is_stale %}
+        <p><span class="badge badge-success"><svg class="icon" style="width:12px;height:12px;"><use href="#i-check"/></svg>Tanishib chiqdingiz</span></p>
+        <p><small>Oxirgi tanishgan vaqt: {{ confirmation.confirmed_at|date:"d.m.Y H:i" }}</small></p>
+    {% elif confirmation and is_stale %}
+        <p><span class="badge badge-warning">⚠️ Yangi baholar qo'shilgan — qayta tanishib chiqing</span></p>
+        <p><small>Oxirgi tanishgan vaqt: {{ confirmation.confirmed_at|date:"d.m.Y H:i" }} (shundan keyin yangilanish bo'lgan)</small></p>
+    {% endif %}
+    <form method="post" action="{% url 'confirm_review' %}">
+        {% csrf_token %}
+        <button type="submit"><svg class="icon"><use href="#i-check"/></svg>Tanishib chiqdim</button>
+    </form>
+</div>
+{% endif %}
+{% endblock %}

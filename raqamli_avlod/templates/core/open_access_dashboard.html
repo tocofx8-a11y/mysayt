@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Mening kursim{% endblock %}
+{% block content %}
+<h1>{{ course.name }} <small>(Open Access)</small></h1>
+<p class="empty-state" style="margin-top:-8px;">🤖 Bu kursdagi barcha vazifalaringizni sun'iy intellekt avtomatik tekshirib, ball qo'yadi.</p>
+
+{% if today_lesson %}
+<div class="card" style="border:1px solid var(--primary);">
+    <div class="flex-row" style="justify-content:space-between;">
+        <span class="badge badge-primary">📅 Joriy dars</span>
+    </div>
+    <h2 style="margin:10px 0 4px;">{{ today_lesson.title }}</h2>
+    <p style="color:var(--glass-muted, var(--text-muted));">{{ today_lesson.lecture_text|truncatewords:24 }}</p>
+    <a href="{% url 'student_lesson' today_lesson.id %}"><button type="button">Darsni boshlash →</button></a>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>Barcha darslar</h3>
+    <table>
+        <tr><th>#</th><th>Dars</th><th>Ball</th></tr>
+        {% for row in lesson_rows %}
+        <tr>
+            <td>{{ row.lesson.order }}</td>
+            <td><a href="{% url 'student_lesson' row.lesson.id %}">{{ row.lesson.title }}</a>{% if row.lesson.id == today_lesson.id %} <span class="badge badge-primary">yangi</span>{% endif %}</td>
+            <td><span class="score-pill">{{ row.score.total }} / {{ row.score.max_total }}</span></td>
+        </tr>
+        {% empty %}<tr><td colspan="3" class="empty-state">Hali dars joylanmagan. Tez orada qo'shiladi.</td></tr>{% endfor %}
+    </table>
+</div>
+{% endblock %}

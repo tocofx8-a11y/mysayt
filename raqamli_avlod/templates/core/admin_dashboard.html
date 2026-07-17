@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Admin paneli{% endblock %}
+{% block content %}
+<div class="page-eyebrow">Admin</div>
+<h1>Boshqaruv paneli</h1>
+
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-user-plus"/></svg>Tezkor amallar</h3></div>
+    <a href="{% url 'register_student' %}"><button type="button"><svg class="icon"><use href="#i-user-plus"/></svg>Talaba ro'yxatga olish</button></a>
+    <a href="{% url 'register_observer' %}"><button type="button" class="btn-ghost"><svg class="icon"><use href="#i-user-plus"/></svg>Kuzatuvchi qo'shish</button></a>
+    <a href="{% url 'monitoring' %}"><button type="button" class="btn-ghost"><svg class="icon"><use href="#i-chart"/></svg>Monitoring</button></a>
+</div>
+
+<div class="card">
+    <h3>Guruhlar</h3>
+    <table>
+        <tr><th>Guruh</th><th>Kurs</th><th>A'zolar</th><th></th></tr>
+        {% for g in groups %}
+        <tr>
+            <td>{{ g.name }}</td>
+            <td>{{ g.course.name }}</td>
+            <td>{{ g.memberships.count }}</td>
+            <td><a href="{% url 'group_detail' g.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Boshqarish</button></a></td>
+        </tr>
+        {% empty %}<tr><td colspan="4">Hali guruhlar yo'q (Super Admin yaratishi kerak)</td></tr>{% endfor %}
+    </table>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-users"/></svg>So'nggi ro'yxatga olingan talabalar</h3></div>
+    <table>
+        <tr><th>Ism familiya</th><th>Login</th><th>Telefon</th><th>Holati</th><th></th></tr>
+        {% for s in students %}
+        <tr>
+            <td>{{ s.get_full_name }}</td>
+            <td><code style="font-family:var(--font-mono);font-size:12.5px;">{{ s.username }}</code></td>
+            <td>{{ s.phone|default:"—" }}</td>
+            <td>{% if s.is_active %}<span class="badge badge-success">Faol</span>{% else %}<span class="badge badge-muted">Chiqarilgan</span>{% endif %}</td>
+            <td>
+                <div class="row-actions">
+                    <a href="{% url 'edit_student' s.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Tahrirlash</button></a>
+                    <form method="post" action="{% url 'toggle_student_active' s.id %}" style="display:inline;"
+                          onsubmit="return confirm('{{ s.get_full_name }} {% if s.is_active %}ni chiqarib yuborishni{% else %}ni qayta faollashtirishni{% endif %} tasdiqlaysizmi?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-sm {% if s.is_active %}btn-danger-ghost{% else %}btn-success-ghost{% endif %}">
+                            {% if s.is_active %}Chiqarib yuborish{% else %}Qayta faollashtirish{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% empty %}<tr><td colspan="5" class="empty-state">Hali talabalar yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-chart"/></svg>Kuzatuvchilar</h3></div>
+    <table>
+        <tr><th>Ism familiya</th><th>Login</th><th>Kuzatilayotgan talaba</th><th>Holati</th><th></th></tr>
+        {% for o in observers %}
+        <tr>
+            <td>{{ o.get_full_name }}</td>
+            <td><code style="font-family:var(--font-mono);font-size:12.5px;">{{ o.username }}</code></td>
+            <td>{{ o.observed_student.get_full_name|default:"—" }}</td>
+            <td>{% if o.is_active %}<span class="badge badge-success">Faol</span>{% else %}<span class="badge badge-muted">Chiqarilgan</span>{% endif %}</td>
+            <td>
+                <div class="row-actions">
+                    <a href="{% url 'edit_observer' o.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Tahrirlash</button></a>
+                    <form method="post" action="{% url 'toggle_observer_active' o.id %}" style="display:inline;"
+                          onsubmit="return confirm('{{ o.get_full_name }} {% if o.is_active %}ni chiqarib yuborishni{% else %}ni qayta faollashtirishni{% endif %} tasdiqlaysizmi?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-sm {% if o.is_active %}btn-danger-ghost{% else %}btn-success-ghost{% endif %}">
+                            {% if o.is_active %}Chiqarib yuborish{% else %}Qayta faollashtirish{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% empty %}<tr><td colspan="5" class="empty-state">Hali kuzatuvchilar yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+{% endblock %}

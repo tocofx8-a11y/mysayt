@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Sertifikatlarim{% endblock %}
+{% block content %}
+<h1>Sertifikatlarim</h1>
+<div class="card">
+    <table>
+        <tr><th>Kurs</th><th>Guruh</th><th>Berilgan sana</th><th></th></tr>
+        {% for c in certificates %}
+        <tr>
+            <td>{{ c.group.course.name }}</td>
+            <td>{{ c.group.name }}</td>
+            <td>{{ c.issued_at|date:"d.m.Y" }}</td>
+            <td><a href="{% url 'certificate_detail' c.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-award"/></svg>Ko'rish</button></a></td>
+        </tr>
+        {% empty %}<tr><td colspan="4">Sizda hali sertifikat yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+{% endblock %}

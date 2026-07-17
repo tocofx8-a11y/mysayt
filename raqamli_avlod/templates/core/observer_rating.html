@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Reyting — {{ group.name }}{% endblock %}
+{% block content %}
+<div class="page-eyebrow">Kuzatuvchi</div>
+<h1>{{ group.name }} guruhi reytingi</h1>
+<p>{{ lesson_count }} ta dars va {{ exam_count }} ta nazorat ishi bo'yicha</p>
+<p><a href="{% url 'observer_dashboard' %}">&larr; Kuzatuv paneliga qaytish</a></p>
+
+<div class="card">
+    <table>
+        <tr><th>O'rin</th><th>Talaba</th><th>Darslar bo'yicha</th><th>Nazorat ishlari bo'yicha</th><th>Jami</th></tr>
+        {% for row in rating_rows %}
+        <tr {% if row.student == observed_student %}style="background:var(--primary-light);"{% endif %}>
+            <td>{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}</td>
+            <td>{{ row.student.get_full_name }}{% if row.student == observed_student %} <span class="badge badge-primary">Sizning talabangiz</span>{% endif %}</td>
+            <td>{{ row.lesson_total }}</td>
+            <td>{{ row.exam_total }}</td>
+            <td><span class="score-pill">{{ row.grand_total }}</span></td>
+        </tr>
+        {% empty %}<tr><td colspan="5" class="empty-state">Hali ma'lumot yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+{% endblock %}

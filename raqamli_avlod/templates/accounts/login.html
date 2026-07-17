@@ -1,0 +1,582 @@
+{% extends "base.html" %}
+{% block title %}Kirish — Raqamli Avlod{% endblock %}
+{% block auth_content %}
+<div class="hero-block" style="text-align:center;max-width:520px;padding:24px;">
+    <p style="letter-spacing:0.18em;text-transform:uppercase;font-size:12px;font-weight:700;color:#8FD8C9;margin-bottom:10px;">
+        Kelajak shu yerdan boshlanadi
+    </p>
+    <h1 style="font-size:40px;margin-bottom:6px;">
+        <span style="background:linear-gradient(90deg,#22D3EE,#818CF8,#A78BFA);-webkit-background-clip:text;background-clip:text;color:transparent;">Raqamli Avlod</span>
+    </h1>
+    <p style="font-family:'Sora',sans-serif;font-weight:600;font-size:16px;color:#C7C9E8;margin-bottom:14px;">O'quv markazi</p>
+    <p style="color:#B7B9DA;font-size:14.5px;line-height:1.6;max-width:440px;margin:0 auto;">
+        Har bir bola — o'sib boruvchi tarmoq. Biz bilim uzatamiz, g'oyalar yonadi,
+        yangi avlod raqamli dunyoni quradi.
+    </p>
+</div>
+<style>
+.hero-block {
+    position: absolute;
+    top: 50%;
+    left: 35%;
+    transform: translate(-50%, calc(-50% - 28vh));
+}
+@media (max-width: 800px) {
+    .hero-block {
+        position: static;
+        left: auto;
+        top: auto;
+        transform: none;
+        margin: 0 auto;
+    }
+}
+</style>
+
+{% if showcase_cards %}
+<div class="showcase-buttons">
+    {% for card in showcase_cards %}
+    <div class="showcase-btn-wrap">
+        <button type="button" class="showcase-btn" data-showcase-open="showcase-modal-{{ card.slot }}">
+            <span class="showcase-btn-icon{% if not card.icon_image %} showcase-btn-icon--plain{% endif %}">
+                {% if card.icon_image %}
+                    <span class="showcase-btn-img-frame"><img src="{{ card.icon_image.url }}" alt="" class="showcase-btn-img"></span>
+                {% else %}
+                    <svg class="icon"><use href="#i-award"/></svg>
+                {% endif %}
+            </span>
+            <span class="showcase-btn-label">{{ card.button_label }}</span>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+{% for card in showcase_cards %}
+<div id="showcase-modal-{{ card.slot }}" class="login-backdrop showcase-modal-backdrop">
+    <div class="card" style="max-width:720px;width:92%;max-height:80vh;overflow-y:auto;position:relative;">
+        <button type="button" class="showcase-close-btn" aria-label="Yopish">&times;</button>
+        <h2 style="margin-bottom:14px;font-size:26px;">{{ card.title|default:card.button_label }}</h2>
+        {% if card.content_html %}
+        <div class="showcase-rich-content">{{ card.content_html|safe }}</div>
+        {% else %}
+        <p style="color:#FFFFFF;white-space:pre-line;line-height:1.8;font-size:15.5px;">
+            {{ card.content|default:"Hali ma'lumot kiritilmagan." }}
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
+<style>
+.showcase-buttons {
+    position: fixed;
+    top: 50%;
+    right: 4%;
+    transform: translateY(-50%);
+    width: 420px;
+    height: min(680px, 78vh);
+    overflow: hidden;
+    z-index: 40;
+}
+.showcase-btn-wrap {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    animation: showcaseIn 0.8s cubic-bezier(.16,.8,.28,1) forwards;
+}
+.showcase-btn-wrap:nth-child(1) { animation-delay: 0.5s; }
+.showcase-btn-wrap:nth-child(2) { animation-delay: 0.65s; }
+.showcase-btn-wrap:nth-child(3) { animation-delay: 0.8s; }
+.showcase-btn-wrap:nth-child(4) { animation-delay: 0.95s; }
+@keyframes showcaseIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+.showcase-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    padding: 0 0 12px;
+    width: 104px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    color: var(--glass-ink);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 12px;
+    box-shadow: 0 14px 34px rgba(4,6,20,0.4);
+    text-align: center;
+    overflow: hidden;
+    transition: transform 0.25s var(--ease), filter 0.25s var(--ease);
+}
+@keyframes showcaseFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+}
+.showcase-btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-4px);
+}
+.showcase-btn,
+.showcase-btn:focus,
+.showcase-btn:active,
+.showcase-btn-icon,
+.showcase-btn-img-frame {
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.showcase-btn:focus-visible .showcase-btn-icon {
+    box-shadow: 0 0 0 3px rgba(129,140,248,0.55), 0 10px 26px rgba(4,6,20,0.45);
+}
+.showcase-btn-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 90px;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+}
+/* Tomchi/shisha yaltirog'i — rasm/ikonka ustida, qutisiz */
+.showcase-btn-icon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 0;
+    background: radial-gradient(85% 65% at 26% 16%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.16) 22%, rgba(255,255,255,0) 46%);
+    pointer-events: none;
+    z-index: 3;
+}
+/* Pastki nozik shisha aksi */
+.showcase-btn-icon::after {
+    content: '';
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    bottom: 6%;
+    height: 20%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(255,255,255,0.18), rgba(255,255,255,0) 75%);
+    filter: blur(3px);
+    pointer-events: none;
+    z-index: 3;
+}
+.showcase-btn-wrap:nth-child(1) .showcase-btn-icon { animation-delay: 1.3s; }
+.showcase-btn-wrap:nth-child(2) .showcase-btn-icon { animation-delay: 1.7s; }
+@keyframes showcasePulse {
+    0%, 100% { filter: drop-shadow(0 0 0 rgba(34,211,238,0)); }
+    50% { filter: drop-shadow(0 0 10px rgba(34,211,238,0.55)); }
+}
+.showcase-btn-icon--plain {
+    background: linear-gradient(135deg, #818CF8 0%, #6366F1 55%, #4338CA 100%);
+    box-shadow: none;
+}
+.showcase-btn-img-frame {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: none;
+}
+.showcase-btn-img { width: 100%; height: 100%; object-fit: cover; }
+.showcase-btn .icon {
+    position: relative; z-index: 1; width: 32px; height: 32px; color: #C7CBFF; flex-shrink: 0;
+    filter: drop-shadow(0 6px 14px rgba(4,6,20,0.5));
+}
+.showcase-btn-label {
+    display: block;
+    padding: 10px 8px 0;
+    color: var(--glass-ink);
+    text-shadow: none;
+}
+
+/* --- Word fayldan olingan HTML kontentni sayt uslubida ko'rsatish --- */
+.showcase-rich-content {
+    color: #FFFFFF;
+    font-size: 15px;
+    line-height: 1.8;
+}
+.showcase-rich-content h1, .showcase-rich-content h2, .showcase-rich-content h3 {
+    color: #FFFFFF;
+    font-family: var(--font-display, inherit);
+    font-weight: 700;
+    margin: 20px 0 8px;
+}
+.showcase-rich-content h1 { font-size: 20px; }
+.showcase-rich-content h2 { font-size: 18px; }
+.showcase-rich-content h3 { font-size: 16px; }
+.showcase-rich-content p { margin: 0 0 12px; color: #FFFFFF; }
+.showcase-rich-content ul, .showcase-rich-content ol { margin: 0 0 12px; padding-left: 22px; color: #FFFFFF; }
+.showcase-rich-content li { margin-bottom: 6px; }
+.showcase-rich-content strong, .showcase-rich-content b { color: #FFFFFF; font-weight: 700; }
+.showcase-rich-content em, .showcase-rich-content i { color: #C7CBFF; }
+.showcase-rich-content a { color: #22D3EE; }
+.showcase-rich-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    display: block;
+    margin: 14px auto;
+    box-shadow: 0 10px 26px rgba(4,6,20,0.45);
+}
+.showcase-rich-content table { width: 100%; border-collapse: collapse; margin: 0 0 12px; }
+.showcase-rich-content td, .showcase-rich-content th {
+    border: 1px solid rgba(255,255,255,0.16); padding: 6px 10px; color: #FFFFFF;
+}
+@media (prefers-reduced-motion: reduce) {
+    .showcase-btn-wrap, .showcase-btn, .showcase-btn-icon { animation: none; opacity: 1; }
+}
+@media (max-width: 800px) {
+    .showcase-buttons {
+        position: static;
+        right: auto;
+        top: auto;
+        transform: none;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: 24px auto 0;
+        padding: 0 16px;
+    }
+    .showcase-btn-wrap { position: static; }
+    .showcase-btn { min-width: 0; flex: 0 1 84px; padding: 0 0 8px; font-size: 11px; width: 84px; }
+    .showcase-btn-icon { width: 100%; height: 70px; }
+}
+.showcase-modal-backdrop { z-index: 210; }
+.showcase-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--glass-border);
+    color: var(--glass-ink);
+    font-size: 20px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+}
+.showcase-close-btn:hover { background: rgba(255,255,255,0.16); box-shadow: none; }
+</style>
+
+<script>
+(function () {
+    document.querySelectorAll('[data-showcase-open]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var modal = document.getElementById(btn.getAttribute('data-showcase-open'));
+            if (modal) modal.classList.add('is-open');
+        });
+    });
+    document.querySelectorAll('.showcase-modal-backdrop').forEach(function (modal) {
+        function close() { modal.classList.remove('is-open'); }
+        modal.querySelector('.showcase-close-btn').addEventListener('click', close);
+        modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    });
+})();
+
+/* Tugmalarni maydon ichida erkin harakatlantirish va bir-biri bilan
+   to'qnashganda sakrab, harakatni davom ettirish (DVD-effekti) */
+(function () {
+    var container = document.querySelector('.showcase-buttons');
+    if (!container) return;
+
+    var wide = window.matchMedia('(min-width: 801px)');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (reduced.matches) return;
+
+    var items = Array.prototype.slice.call(container.querySelectorAll('.showcase-btn-wrap'));
+    if (items.length < 1) return;
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+
+    var state = items.map(function (el) {
+        var dir = Math.random() < 0.5 ? -1 : 1;
+        var dir2 = Math.random() < 0.5 ? -1 : 1;
+        return { el: el, x: 0, y: 0, vx: rand(0.35, 0.7) * dir, vy: rand(0.35, 0.7) * dir2, w: 0, h: 0 };
+    });
+
+    var rafId = null;
+    var running = false;
+
+    function layout() {
+        var cw = container.clientWidth, ch = container.clientHeight;
+        state.forEach(function (s) {
+            s.w = s.el.offsetWidth || 104;
+            s.h = s.el.offsetHeight || 160;
+            s.x = Math.min(Math.max(s.x, 0), Math.max(0, cw - s.w));
+            s.y = Math.min(Math.max(s.y, 0), Math.max(0, ch - s.h));
+        });
+    }
+
+    function placeInitial() {
+        var cw = container.clientWidth, ch = container.clientHeight;
+        var cols = Math.ceil(Math.sqrt(state.length));
+        var rows = Math.ceil(state.length / cols);
+        var cellW = cw / cols, cellH = ch / rows;
+        state.forEach(function (s, i) {
+            s.w = s.el.offsetWidth || 104;
+            s.h = s.el.offsetHeight || 160;
+            var col = i % cols, row = Math.floor(i / cols);
+            var cellX = col * cellW, cellY = row * cellH;
+            s.x = Math.min(Math.max(cellX + 4, 0), Math.max(0, cw - s.w));
+            s.y = Math.min(Math.max(cellY + 4, 0), Math.max(0, ch - s.h));
+            s.el.style.left = s.x + 'px';
+            s.el.style.top = s.y + 'px';
+        });
+    }
+
+    function step() {
+        var cw = container.clientWidth, ch = container.clientHeight;
+
+        state.forEach(function (s) {
+            s.x += s.vx;
+            s.y += s.vy;
+            if (s.x <= 0) { s.x = 0; s.vx = Math.abs(s.vx); }
+            if (s.x + s.w >= cw) { s.x = cw - s.w; s.vx = -Math.abs(s.vx); }
+            if (s.y <= 0) { s.y = 0; s.vy = Math.abs(s.vy); }
+            if (s.y + s.h >= ch) { s.y = ch - s.h; s.vy = -Math.abs(s.vy); }
+        });
+
+        for (var i = 0; i < state.length; i++) {
+            for (var j = i + 1; j < state.length; j++) {
+                var a = state[i], b = state[j];
+                var overlap = a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+                if (overlap) {
+                    var tvx = a.vx, tvy = a.vy;
+                    a.vx = b.vx; a.vy = b.vy;
+                    b.vx = tvx; b.vy = tvy;
+
+                    var overlapX = Math.min(a.x + a.w - b.x, b.x + b.w - a.x);
+                    var overlapY = Math.min(a.y + a.h - b.y, b.y + b.h - a.y);
+                    if (overlapX < overlapY) {
+                        if (a.x < b.x) { a.x -= overlapX / 2 + 1; b.x += overlapX / 2 + 1; }
+                        else { a.x += overlapX / 2 + 1; b.x -= overlapX / 2 + 1; }
+                    } else {
+                        if (a.y < b.y) { a.y -= overlapY / 2 + 1; b.y += overlapY / 2 + 1; }
+                        else { a.y += overlapY / 2 + 1; b.y -= overlapY / 2 + 1; }
+                    }
+                }
+            }
+        }
+
+        state.forEach(function (s) {
+            s.el.style.left = s.x + 'px';
+            s.el.style.top = s.y + 'px';
+        });
+
+        rafId = requestAnimationFrame(step);
+    }
+
+    function start() {
+        if (running) return;
+        running = true;
+        placeInitial();
+        rafId = requestAnimationFrame(step);
+    }
+
+    function stop() {
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        state.forEach(function (s) { s.el.style.left = ''; s.el.style.top = ''; });
+    }
+
+    function sync() {
+        if (wide.matches) { start(); } else { stop(); }
+    }
+
+    window.addEventListener('load', function () { setTimeout(sync, 1500); });
+    window.addEventListener('resize', function () {
+        if (running) layout(); else sync();
+    });
+})();
+</script>
+
+<div id="login-backdrop" class="login-backdrop{% if form.errors %} is-open{% endif %}">
+    <div id="login-card" class="card" style="max-width:380px;width:100%;position:relative;">
+        <button type="button" id="login-close-btn" aria-label="Yopish">&times;</button>
+        <div style="text-align:center;margin-bottom:20px;">
+            <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#6D63F0,#4F46E5 55%,#38BDF8);box-shadow:0 8px 24px rgba(79,70,229,0.4),inset 0 1px 0 rgba(255,255,255,0.35);color:white;font-family:'Sora',sans-serif;font-weight:800;font-size:19px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;animation:floatLogo 3.5s ease-in-out infinite;">RA</div>
+            <h2 style="margin-bottom:2px;">Tizimga kirish</h2>
+            <small>Login va parolingizni kiriting</small>
+        </div>
+        {% if form.errors %}
+            <div class="alert alert-error">Login yoki parol noto'g'ri. Qaytadan urinib ko'ring.</div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" style="width:100%;">Kirish</button>
+        </form>
+    </div>
+</div>
+
+<div id="register-backdrop" class="login-backdrop{% if register_open %} is-open{% endif %}">
+    <div id="register-card" class="card" style="max-width:420px;width:100%;position:relative;max-height:88vh;overflow-y:auto;">
+        <button type="button" id="register-close-btn" aria-label="Yopish">&times;</button>
+        <div style="text-align:center;margin-bottom:20px;">
+            <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#22D3EE,#6366F1 60%,#4338CA);box-shadow:0 8px 24px rgba(79,70,229,0.4),inset 0 1px 0 rgba(255,255,255,0.35);color:white;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                <svg class="icon" style="width:26px;height:26px;"><use href="#i-user-plus"/></svg>
+            </div>
+            <h2 style="margin-bottom:2px;">Ro'yxatdan o'tish</h2>
+            <small>Open Access — kursni tanlab, mustaqil o'qishni boshlang</small>
+        </div>
+        <form method="post" action="{% url 'open_access_register' %}">
+            {% csrf_token %}
+            {{ register_form.as_p }}
+            <button type="submit" style="width:100%;">Ro'yxatdan o'tish va boshlash</button>
+        </form>
+    </div>
+</div>
+
+<style>
+@keyframes floatLogo { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+.login-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(6,8,26,0.62);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s var(--ease), visibility 0.25s var(--ease);
+}
+.login-backdrop.is-open { opacity: 1; visibility: visible; }
+.login-backdrop .card {
+    transform: translateY(14px) scale(0.98);
+    transition: transform 0.28s var(--ease);
+}
+.login-backdrop.is-open .card { transform: translateY(0) scale(1); }
+
+/* --- Parolni ko'rsatish/yashirish tugmasi --- */
+.pw-field-wrap { position: relative; }
+.pw-field-wrap input[type="password"], .pw-field-wrap input[type="text"] {
+    padding-right: 42px !important;
+}
+.pw-toggle-btn {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--glass-muted, #9CA0CB);
+    padding: 0;
+}
+.pw-toggle-btn:hover { background: rgba(255,255,255,0.08); color: #FFFFFF; }
+.pw-toggle-btn svg { width: 18px; height: 18px; }
+#login-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--glass-border);
+    color: var(--glass-ink);
+    font-size: 20px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+}
+#login-close-btn:hover { background: rgba(255,255,255,0.16); box-shadow: none; }
+</style>
+
+<script>
+(function () {
+    var openBtn = document.getElementById('open-login-btn');
+    var backdrop = document.getElementById('login-backdrop');
+    var closeBtn = document.getElementById('login-close-btn');
+
+    var regOpenBtn = document.getElementById('open-register-btn');
+    var regBackdrop = document.getElementById('register-backdrop');
+    var regCloseBtn = document.getElementById('register-close-btn');
+
+    function closeAll() {
+        if (backdrop) backdrop.classList.remove('is-open');
+        if (regBackdrop) regBackdrop.classList.remove('is-open');
+    }
+
+    if (openBtn) openBtn.addEventListener('click', function () { closeAll(); backdrop.classList.add('is-open'); });
+    if (closeBtn) closeBtn.addEventListener('click', closeAll);
+    if (backdrop) {
+        backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeAll(); });
+    }
+
+    if (regOpenBtn) regOpenBtn.addEventListener('click', function () { closeAll(); regBackdrop.classList.add('is-open'); });
+    if (regCloseBtn) regCloseBtn.addEventListener('click', closeAll);
+    if (regBackdrop) {
+        regBackdrop.addEventListener('click', function (e) { if (e.target === regBackdrop) closeAll(); });
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeAll();
+    });
+})();
+
+/* --- Har qanday parol maydoniga "ko'rsatish/yashirish" tugmasini qo'shish --- */
+(function () {
+    var EYE_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    var EYE_CLOSED = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>';
+
+    document.querySelectorAll('input[type="password"]').forEach(function (input) {
+        var wrap = document.createElement('div');
+        wrap.className = 'pw-field-wrap';
+        input.parentNode.insertBefore(wrap, input);
+        wrap.appendChild(input);
+
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pw-toggle-btn';
+        btn.innerHTML = EYE_OPEN;
+        btn.setAttribute('aria-label', "Parolni ko'rsatish");
+        wrap.appendChild(btn);
+
+        btn.addEventListener('click', function () {
+            var showing = input.type === 'text';
+            input.type = showing ? 'password' : 'text';
+            btn.innerHTML = showing ? EYE_OPEN : EYE_CLOSED;
+            btn.setAttribute('aria-label', showing ? "Parolni ko'rsatish" : "Parolni yashirish");
+        });
+    });
+})();
+</script>
+{% endblock %}

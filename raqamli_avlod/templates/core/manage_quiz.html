@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Quiz — {{ lesson.title }}{% endblock %}
+{% block content %}
+<h1>4-qism: Quiz/test bo'limi</h1>
+<p>{{ lesson.title }} | <a href="{% url 'lesson_detail' lesson.id %}">&larr; Darsga qaytish</a></p>
+
+<div class="card" style="max-width:600px;">
+    <h3>Yangi quiz savoli qo'shish</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Qo'shish</button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Quiz savollari ({{ quiz_questions.count }})</h3>
+    <table>
+        <tr><th>#</th><th>Savol</th><th>To'g'ri javob</th><th></th></tr>
+        {% for q in quiz_questions %}
+        <tr>
+            <td>{{ q.order }}</td>
+            <td>{{ q.text }}</td>
+            <td>{{ q.correct_option }}</td>
+            <td>
+                <form method="post" action="{% url 'delete_quiz_question' lesson.id q.id %}" style="display:inline;"
+                      onsubmit="return confirm('Savolni o\'chirishni tasdiqlaysizmi?');">
+                    {% csrf_token %}
+                    <button type="submit">O'chirish</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}<tr><td colspan="4">Hali quiz savollari yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+{% endblock %}

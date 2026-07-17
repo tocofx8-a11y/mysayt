@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ group.name }} — darslar{% endblock %}
+{% block content %}
+<h1>{{ group.name }} <small>({{ group.course.name }})</small></h1>
+<p>
+    <a href="{% url 'student_dashboard' %}">&larr; Bosh sahifa</a> |
+    <a href="{% url 'student_rating' group.id %}">🏆 Reyting</a>
+</p>
+
+<div class="card">
+    <h3>Darslar</h3>
+    <table>
+        <tr><th>#</th><th>Dars</th><th>Ball</th></tr>
+        {% for row in lesson_rows %}
+        <tr>
+            <td>{{ row.lesson.order }}</td>
+            <td><a href="{% url 'student_lesson' row.lesson.id %}">{{ row.lesson.title }}</a></td>
+            <td><span class="score-pill">{{ row.score.total }} / {{ row.score.max_total }}</span></td>
+        </tr>
+        {% empty %}<tr><td colspan="3" class="empty-state">Hali dars joylanmagan</td></tr>{% endfor %}
+    </table>
+</div>
+
+<div class="card">
+    <h3>Nazorat ishlari</h3>
+    {% for row in exam_rows %}
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px;">
+        <div class="flex-row" style="justify-content:space-between;">
+            <strong>{{ row.exam.title }}</strong>
+            <span class="badge badge-muted">{{ row.exam.max_score }} ball</span>
+        </div>
+        {% if row.exam.description %}<p style="margin-top:8px;">{{ row.exam.description }}</p>{% endif %}
+        {% if row.exam.attachment %}<p><a href="{{ row.exam.attachment.url }}" target="_blank">📎 Nazorat ishi fayli</a></p>{% endif %}
+
+        {% if row.score_obj and row.score_obj.score is not None %}
+            <p><span class="badge badge-success">✓ Baholandi</span> <span class="score-pill">{{ row.score_obj.score }}/{{ row.exam.max_score }}</span></p>
+            {% if row.score_obj.answer_file %}<p><a href="{{ row.score_obj.answer_file.url }}" target="_blank">Yuklangan javobingiz</a></p>{% endif %}
+        {% else %}
+            {% if row.score_obj and row.score_obj.answer_file %}
+                <p><span class="badge badge-warning">Yuklangan, hali baholanmagan</span> — <a href="{{ row.score_obj.answer_file.url }}" target="_blank">faylni ko'rish</a></p>
+            {% endif %}
+            <form method="post" action="{% url 'submit_control_exam' group.id row.exam.id %}" enctype="multipart/form-data" style="margin-top:8px;">
+                {% csrf_token %}
+                <input type="file" name="answer_file" required>
+                <button type="submit">{% if row.score_obj and row.score_obj.answer_file %}Qayta yuklash{% else %}Yuklash{% endif %}</button>
+            </form>
+        {% endif %}
+    </div>
+    {% empty %}<p class="empty-state">Hali nazorat ishi joylanmagan</p>{% endfor %}
+</div>
+{% endblock %}

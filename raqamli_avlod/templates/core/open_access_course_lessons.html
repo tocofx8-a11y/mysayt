@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ course.name }} — Open Access darslari{% endblock %}
+{% block content %}
+<p><a href="{% url 'open_access_admin' %}">&larr; Open Access boshqaruviga qaytish</a></p>
+<div class="flex-row" style="justify-content:space-between;">
+    <h1 style="margin:0;">{{ course.name }} <small>(Open Access darslari)</small></h1>
+    <a href="{% url 'create_open_lesson' course.id %}"><button type="button"><svg class="icon"><use href="#i-plus-circle"/></svg>Yangi dars</button></a>
+</div>
+
+<div class="card">
+    <table>
+        <tr><th>#</th><th>Dars mavzusi</th><th></th></tr>
+        {% for lesson in lessons %}
+        <tr>
+            <td>{{ lesson.order }}</td>
+            <td>{{ lesson.title }}</td>
+            <td>
+                <a href="{% url 'lesson_detail' lesson.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Boshqarish</button></a>
+                <a href="{% url 'edit_lesson' lesson.id %}"><button type="button" class="btn-ghost btn-sm">✏️ Tahrirlash</button></a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="empty-state">Hali dars qo'shilmagan. "Yangi dars" tugmasi orqali qo'shing.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

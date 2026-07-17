@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Yangi dars{% endblock %}
+{% block content %}
+<div class="card" style="max-width:600px;">
+    <h2>{% if group %}{{ group.name }} guruhi{% else %}{{ course.name }} kursi (Open Access){% endif %} uchun yangi dars</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Qo'shish</button>
+        <a href="{% if group %}{% url 'teacher_dashboard' %}{% else %}{% url 'open_access_course_lessons' course.id %}{% endif %}">Bekor qilish</a>
+    </form>
+</div>
+{% endblock %}

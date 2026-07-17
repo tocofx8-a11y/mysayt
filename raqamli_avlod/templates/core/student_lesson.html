@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.title }}{% endblock %}
+{% block content %}
+<p><a href="{% if lesson.group %}{% url 'student_group_lessons' lesson.group.id %}{% else %}{% url 'open_access_dashboard' %}{% endif %}">&larr; Darslar ro'yxatiga qaytish</a></p>
+<h1>{{ lesson.title }}</h1>
+
+<div class="stepper">
+    <div class="step {% if video_done %}done{% else %}active{% endif %}">
+        <div class="step-circle">{% if video_done %}✓{% else %}1{% endif %}</div>
+        <div class="step-label">Video</div>
+    </div>
+    <div class="step {% if video_done %}active{% else %}locked{% endif %}">
+        <div class="step-circle">{% if video_done %}2{% else %}🔒{% endif %}</div>
+        <div class="step-label">Topshiriq</div>
+    </div>
+    <div class="step {% if video_done %}active{% else %}locked{% endif %}">
+        <div class="step-circle">{% if video_done %}3{% else %}🔒{% endif %}</div>
+        <div class="step-label">Savollar</div>
+    </div>
+    <div class="step {% if quiz_result %}done{% elif video_done %}active{% else %}locked{% endif %}">
+        <div class="step-circle">{% if quiz_result %}✓{% elif video_done %}4{% else %}🔒{% endif %}</div>
+        <div class="step-label">Quiz</div>
+    </div>
+</div>
+
+<div class="card" style="background:var(--primary-light);border-color:#C7D2FE;">
+    <div class="flex-row" style="justify-content:space-between;">
+        <div><strong>Umumiy ball</strong></div>
+        <div class="score-pill" style="font-size:15px;">{{ score.total }} / {{ score.max_total }}</div>
+    </div>
+    <div class="progress"><div class="progress-fill" style="width:{% widthratio score.total score.max_total 100 %}%;"></div></div>
+</div>
+
+<div class="card">
+    <h3>Maruza matni</h3>
+    <p style="white-space:pre-line;">{{ lesson.lecture_text }}</p>
+    {% if lesson.lecture_file %}
+    <p><a href="{{ lesson.lecture_file.url }}" target="_blank"><button type="button" class="btn-ghost btn-sm">📎 Maruza faylini ochish</button></a></p>
+    {% endif %}
+</div>
+
+<!-- 1-QISM: VIDEO -->
+<div class="card">
+    <div class="flex-row" style="justify-content:space-between;">
+        <h3 style="margin:0;">1-qism — Video dars</h3>
+        <span class="badge {% if video_done %}badge-success{% else %}badge-warning{% endif %}">{{ homework.VIDEO_SCORE }} ball</span>
+    </div>
+    {% if video_done %}
+        <p style="margin-top:10px;"><span class="badge badge-success">✓ Ko'rilgan</span> — +{{ homework.VIDEO_SCORE }} ball qo'shildi</p>
+    {% else %}
+        {% if video_part.video_file %}
+            <video id="lessonVideo" controls style="max-width:100%;border-radius:10px;margin-top:10px;">
+                <source src="{{ video_part.video_file.url }}">
+            </video>
+            <script>
+                document.getElementById('lessonVideo').addEventListener('ended', function () {
+                    document.getElementById('videoWatchedForm').submit();
+                });
+            </script>
+        {% elif video_part.video_url %}
+            <p><a href="{{ video_part.video_url }}" target="_blank" rel="noopener">▶ Videoni ochish</a></p>
+        {% else %}
+            <p class="empty-state">Video hali joylanmagan.</p>
+        {% endif %}
+        <form id="videoWatchedForm" method="post" action="{% url 'mark_video_watched' lesson.id %}" style="margin-top:10px;">
+            {% csrf_token %}
+            <button type="submit">✅ Videoni to'liq ko'rdim</button>
+        </form>
+    {% endif %}
+</div>
+
+{% if video_done %}
+<!-- 2-QISM: TOPSHIRIQ -->
+<div class="card">
+    <div class="flex-row" style="justify-content:space-between;">
+        <h3 style="margin:0;">2-qism — Topshiriq</h3>
+        <span class="badge badge-warning">{{ homework.TASK_TOTAL_SCORE }} ball</span>
+    </div>
+    {% for row in task_rows %}
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px;">
+        <div class="flex-row" style="justify-content:space-between;">
+            <strong>{{ row.level.get_level_display }}</strong>
+            <span class="badge badge-muted">{{ row.level.max_score }} ball</span>
+        </div>
+        {% if row.is_unlocked %}
+            <p style="margin-top:8px;">{{ row.level.instructions }}</p>
+            {% if row.submission.answer_file %}
+                <p>
+                    <span class="badge badge-success">✓ Yuklangan</span>
+                    <a href="{{ row.submission.answer_file.url }}" target="_blank">faylni ko'rish</a>
+                    {% if row.submission.score is not None %}
+                        <span class="score-pill">{{ row.submission.score }}/{{ row.level.max_score }}</span>
+                    {% else %}
+                        <span class="badge badge-muted">hali baholanmagan</span>
+                    {% endif %}
+                </p>
+            {% endif %}
+            {% if row.submission.score is None %}
+            <form method="post" action="{% url 'submit_task' lesson.id row.level.level %}" enctype="multipart/form-data" style="margin-top:8px;">
+                {% csrf_token %}
+                <input type="file" name="answer_file" accept=".txt,.pdf,.doc,.docx" required>
+                <button type="submit">{% if row.submission.answer_file %}Qayta yuklash{% else %}Yuklash{% endif %}</button>
+            </form>
+            {% else %}
+                <div class="flex-row" style="justify-content:space-between;align-items:flex-start;gap:12px;">
+                    <p class="empty-state" style="margin:0;">✅ Baholangan — o'zgartirib bo'lmaydi.</p>
+                    {% if row.submission.ai_feedback %}
+                    <div class="ai-suggestion ai-suggestion-sm" style="margin:0;text-align:left;">
+                        🤖 <strong>Nima uchun shu ball:</strong>
+                        <p>{{ row.submission.ai_feedback }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <form method="post" action="{% url 'unlock_task' lesson.id row.level.level %}" class="flex-row" style="margin-top:8px;">
+                {% csrf_token %}
+                <input type="text" name="code" placeholder="🔒 Kirish kodi" required style="max-width:180px;">
+                <button type="submit">Ochish</button>
+            </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<!-- 3-QISM: SAVOLLAR -->
+<div class="card">
+    <div class="flex-row" style="justify-content:space-between;">
+        <h3 style="margin:0;">3-qism — Savol-javob</h3>
+        <span class="badge {% if questions_graded %}badge-success{% else %}badge-warning{% endif %}">{{ homework.QUESTIONS_SCORE }} ball</span>
+    </div>
+    {% if question_rows %}
+        {% if questions_graded %}
+            <p style="margin-top:10px;"><span class="badge badge-success">✓ Baholandi</span> <span class="score-pill">{{ score.questions_score }}/{{ homework.QUESTIONS_SCORE }}</span></p>
+            {% for row in question_rows %}
+            <p><strong>{{ forloop.counter }}. {{ row.question.text }}</strong></p>
+            <blockquote style="margin:0 0 12px;padding:10px 14px;background:rgba(255,255,255,0.05);border-left:3px solid var(--glass-border, rgba(255,255,255,0.15));border-radius:8px;color:var(--glass-ink);">{{ row.answer_text|default:"(javob yozilmagan)" }}</blockquote>
+            {% endfor %}
+            <p class="empty-state">✅ Baholangan — javoblarni qayta yuborib bo'lmaydi.</p>
+        {% else %}
+        <form method="post" action="{% url 'submit_questions' lesson.id %}" style="margin-top:10px;">
+            {% csrf_token %}
+            {% for row in question_rows %}
+            <p><strong>{{ forloop.counter }}. {{ row.question.text }}</strong></p>
+            <textarea name="answer_{{ row.question.id }}" rows="3" style="width:100%;">{{ row.answer_text }}</textarea>
+            {% endfor %}
+            <button type="submit">Javoblarni yuborish</button>
+        </form>
+        {% endif %}
+    {% else %}
+        <p class="empty-state">Hali savol joylanmagan.</p>
+    {% endif %}
+</div>
+
+<!-- 4-QISM: QUIZ -->
+<div class="card">
+    <div class="flex-row" style="justify-content:space-between;">
+        <h3 style="margin:0;">4-qism — Quiz/test</h3>
+        <span class="badge {% if quiz_result %}badge-success{% else %}badge-warning{% endif %}">{{ homework.QUIZ_SCORE }} ball</span>
+    </div>
+    {% if quiz_result %}
+        <p style="margin-top:10px;"><span class="badge badge-success">✓ {{ quiz_result.correct_count }}/{{ quiz_result.total_count }} to'g'ri</span> <span class="score-pill">{{ quiz_result.score }} ball</span></p>
+    {% elif quiz_questions %}
+        <form method="post" action="{% url 'submit_quiz' lesson.id %}" style="margin-top:10px;">
+            {% csrf_token %}
+            {% for q in quiz_questions %}
+            <p><strong>{{ forloop.counter }}. {{ q.text }}</strong></p>
+            <label><input type="radio" name="quiz_{{ q.id }}" value="A" required style="width:auto;"> A) {{ q.option_a }}</label><br>
+            <label><input type="radio" name="quiz_{{ q.id }}" value="B" style="width:auto;"> B) {{ q.option_b }}</label><br>
+            <label><input type="radio" name="quiz_{{ q.id }}" value="C" style="width:auto;"> C) {{ q.option_c }}</label><br>
+            <label><input type="radio" name="quiz_{{ q.id }}" value="D" style="width:auto;"> D) {{ q.option_d }}</label>
+            {% endfor %}
+            <br><button type="submit">Quizni yakunlash</button>
+        </form>
+    {% else %}
+        <p class="empty-state">Hali quiz joylanmagan.</p>
+    {% endif %}
+</div>
+{% else %}
+<div class="card empty-state">
+    <p style="margin:0;">🔒 2, 3 va 4-qismlar videoni to'liq ko'rgandan so'ng ochiladi.</p>
+</div>
+{% endif %}
+{% endblock %}

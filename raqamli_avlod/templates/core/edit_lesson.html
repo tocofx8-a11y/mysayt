@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Darsni tahrirlash{% endblock %}
+{% block content %}
+<p><a href="{% url 'lesson_detail' lesson.id %}">&larr; Darsga qaytish</a></p>
+<div class="card" style="max-width:600px;">
+    <h2>"{{ lesson.title }}" darsini tahrirlash</h2>
+    {% if lesson.lecture_file %}
+    <p class="empty-state" style="margin-top:-4px;">
+        Joriy fayl: <a href="{{ lesson.lecture_file.url }}" target="_blank">{{ lesson.lecture_file.name|slice:"14:" }}</a>
+        (yangi fayl tanlasangiz, eskisi almashtiriladi)
+    </p>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Saqlash</button>
+        <a href="{% url 'lesson_detail' lesson.id %}"><button type="button" class="btn-ghost">Bekor qilish</button></a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Baholash — {{ exam.title }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'group_detail' exam.group.id %}">&larr; Guruhga qaytish</a></p>
+<div class="page-eyebrow">Nazorat ishi</div>
+<h1>{{ exam.title }}</h1>
+<p><small>{{ exam.group.name }} guruhi &middot; Maksimal ball: {{ exam.max_score }}</small></p>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        <table>
+            <tr><th>Talaba</th><th>Yuklangan javob</th><th>Ball (0–{{ exam.max_score }})</th></tr>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row.student.get_full_name }}</td>
+                <td>
+                    {% if row.answer_file %}
+                        <a href="{{ row.answer_file.url }}" target="_blank">📎 Faylni ko'rish</a>
+                    {% else %}
+                        <span class="badge badge-muted">Yuklanmagan</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <input type="number" id="exam_input_{{ row.student.id }}" name="score_{{ row.student.id }}"
+                           min="0" max="{{ exam.max_score }}"
+                           value="{{ row.score|default_if_none:'' }}" style="width:80px;"
+                           {% if not row.answer_file %}disabled title="Talaba hali javob yuklamagan"{% endif %}>
+                    {% if row.ai_checked_at %}
+                        <div class="ai-suggestion ai-suggestion-sm">
+                            🤖 <strong>{{ row.ai_score|default_if_none:"?" }}/{{ exam.max_score }}</strong>
+                            <p>{{ row.ai_feedback }}</p>
+                            {% if row.ai_score is not None %}
+                            <button type="button" class="ai-apply-btn" onclick="document.getElementById('exam_input_{{ row.student.id }}').value={{ row.ai_score }};">Qo'llash</button>
+                            {% endif %}
+                        </div>
+                    {% elif row.answer_file %}
+                        <p class="ai-pending">🤖 tekshirmoqda...</p>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}<tr><td colspan="3" class="empty-state">Guruhda talaba yo'q</td></tr>{% endfor %}
+        </table>
+        <br>
+        <button type="submit">Baholarni saqlash</button>
+    </form>
+</div>
+{% endblock %}

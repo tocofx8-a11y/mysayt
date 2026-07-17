@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Monitoring{% endblock %}
+{% block content %}
+<div class="page-eyebrow">Admin</div>
+<h1>Monitoring</h1>
+<p>Kuzatuvchilarning talabalar baholari bilan tanishib chiqqan-chiqmaganini shu yerdan kuzating.</p>
+
+<div class="card">
+    <div class="card-header"><h3><svg class="icon"><use href="#i-users"/></svg>Guruhlar</h3><span class="badge badge-primary">{{ group_rows|length }}</span></div>
+    <table>
+        <tr><th>Guruh</th><th>Kurs</th><th>Holati</th><th></th></tr>
+        {% for row in group_rows %}
+        <tr>
+            <td><strong>{{ row.group.name }}</strong></td>
+            <td>{{ row.group.course.name }}</td>
+            <td>
+                {% if row.needs_attention > 0 %}
+                    <span class="badge badge-warning">⚠️ {{ row.needs_attention }} ta e'tibor talab qiladi</span>
+                {% else %}
+                    <span class="badge badge-success">✓ Hammasi joyida</span>
+                {% endif %}
+            </td>
+            <td><a href="{% url 'monitoring_group_detail' row.group.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-chart"/></svg>Ko'rish</button></a></td>
+        </tr>
+        {% empty %}<tr><td colspan="4" class="empty-state">Hali guruhlar yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+{% endblock %}

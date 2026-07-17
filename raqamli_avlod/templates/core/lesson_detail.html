@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.title }}{% endblock %}
+{% block content %}
+<p><a href="{% if lesson.group %}{% url 'teacher_dashboard' %}{% else %}{% url 'open_access_course_lessons' lesson.course.id %}{% endif %}">&larr; Orqaga qaytish</a></p>
+<div class="flex-row" style="justify-content:space-between;">
+    <h1 style="margin:0;">{{ lesson.title }}</h1>
+    <div class="flex-row" style="gap:8px;">
+        <a href="{% url 'edit_lesson' lesson.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Tahrirlash</button></a>
+        {% if lesson.group %}
+        <a href="{% url 'grade_homework_list' lesson.id %}"><button type="button"><svg class="icon"><use href="#i-chart"/></svg>Talabalarni baholash</button></a>
+        {% else %}
+        <span class="badge badge-primary">🤖 Open Access — AI to'liq avtomatik baholaydi</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <h3>Maruza matni</h3>
+    <p style="white-space:pre-line;">{{ lesson.lecture_text }}</p>
+    {% if lesson.lecture_file %}
+    <p><a href="{{ lesson.lecture_file.url }}" target="_blank"><button type="button" class="btn-ghost btn-sm">📎 Maruza faylini ochish</button></a></p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="flex-row" style="justify-content:space-between;">
+        <h3 style="margin:0;">Uyga vazifa — 4 qism</h3>
+        <span class="badge badge-primary">jami 100 ball + faollik 10 ball</span>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px;">
+        <div class="flex-row" style="justify-content:space-between;">
+            <strong>1-qism — Video dars</strong>
+            <span class="badge badge-muted">5 ball</span>
+        </div>
+        <p style="margin-top:8px;">
+            {% if video_part.video_url or video_part.video_file %}
+                <span class="badge badge-success">✓ Joylangan</span>
+            {% else %}
+                <span class="badge badge-warning">⬜ Hali joylanmagan</span>
+            {% endif %}
+        </p>
+        <a href="{% url 'edit_video' lesson.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Tahrirlash</button></a>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px;">
+        <div class="flex-row" style="justify-content:space-between;">
+            <strong>2-qism — Topshiriq, 3 daraja</strong>
+            <span class="badge badge-muted">60 ball (10+20+30)</span>
+        </div>
+        <table>
+            <tr><th>Daraja</th><th>Ball</th><th>Holati</th><th></th></tr>
+            {% for t in task_levels %}
+            <tr>
+                <td>{{ t.get_level_display }}</td>
+                <td>{{ t.max_score }}</td>
+                <td>{% if t.instructions and t.access_code %}<span class="badge badge-success">✓ Joylangan</span>{% else %}<span class="badge badge-warning">⬜ To'ldirilmagan</span>{% endif %}</td>
+                <td><a href="{% url 'edit_task_level' lesson.id t.level %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Tahrirlash</button></a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px;">
+        <div class="flex-row" style="justify-content:space-between;">
+            <strong>3-qism — Savol-javob</strong>
+            <span class="badge badge-muted">10 ball</span>
+        </div>
+        <p style="margin-top:8px;">{{ questions.count }} ta savol</p>
+        <a href="{% url 'manage_questions' lesson.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Boshqarish</button></a>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px;">
+        <div class="flex-row" style="justify-content:space-between;">
+            <strong>4-qism — Quiz/test</strong>
+            <span class="badge badge-muted">15 ball</span>
+        </div>
+        <p style="margin-top:8px;">{{ quiz_questions.count }} ta savol</p>
+        <a href="{% url 'manage_quiz' lesson.id %}"><button type="button" class="btn-ghost btn-sm"><svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Boshqarish</button></a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Baholarim{% endblock %}
+{% block content %}
+<h1>Baholarim</h1>
+{% for gd in groups_data %}
+<div class="card">
+    <h3>{{ gd.group.name }} <small>({{ gd.group.course.name }})</small></h3>
+    <table>
+        <tr>
+            <th>Dars</th><th>Video</th><th>Topshiriq</th><th>Savollar</th><th>Quiz</th><th>Faollik</th><th>Jami</th>
+        </tr>
+        {% for row in gd.rows %}
+        <tr>
+            <td>{{ row.lesson.title }}</td>
+            <td>{{ row.score.video_score }}/{{ row.lesson.homework.VIDEO_SCORE }}</td>
+            <td>{{ row.score.task_score }}/{{ row.lesson.homework.TASK_TOTAL_SCORE }}</td>
+            <td>{{ row.score.questions_score }}/{{ row.lesson.homework.QUESTIONS_SCORE }}</td>
+            <td>{{ row.score.quiz_score }}/{{ row.lesson.homework.QUIZ_SCORE }}</td>
+            <td>{{ row.score.activity_score }}/{{ row.lesson.homework.ACTIVITY_SCORE }}</td>
+            <td><span class="score-pill">{{ row.score.total }}/{{ row.score.max_total }}</span></td>
+        </tr>
+        {% empty %}<tr><td colspan="7">Hali dars yo'q</td></tr>{% endfor %}
+    </table>
+</div>
+{% empty %}
+<div class="card">Siz hali hech qaysi guruhga biriktirilmagansiz.</div>
+{% endfor %}
+{% endblock %}

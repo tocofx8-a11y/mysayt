@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Ko'rsatma{% endblock %}
+{% block content %}
+<div class="page-eyebrow">Super Admin</div>
+<h1>Ko'rsatma</h1>
+<p style="color:var(--muted);max-width:640px;margin-top:-8px;margin-bottom:20px;">
+    Bu yerda kirish (bosh) sahifaning o'ng tomonida chiqadigan ikkita ma'lumot tugmasini
+    boshqarasiz. Har bir tugmani bosganda mehmonlarga shu yerda yozgan sarlavha va matningiz
+    oynacha (modal) ko'rinishida chiqadi.
+</p>
+
+<div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
+    {% for card in cards %}
+    <div class="card">
+        <div class="card-header">
+            <h3><svg class="icon"><use href="#i-layers"/></svg>{{ card.get_slot_display }}</h3>
+        </div>
+        <p style="margin:0 0 4px;"><strong>Tugma matni:</strong> {{ card.button_label }}</p>
+        <p style="margin:0 0 4px;"><strong>Sarlavha:</strong> {{ card.title|default:"—" }}</p>
+        <p style="margin:0 0 14px;color:var(--muted);">
+            {{ card.content|default:"Hali matn kiritilmagan."|truncatewords:22 }}
+        </p>
+        <a href="{% url 'edit_showcase' card.id %}">
+            <button type="button" class="btn-ghost btn-sm">
+                <svg class="icon" style="width:13px;height:13px;"><use href="#i-edit"/></svg>Tahrirlash
+            </button>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

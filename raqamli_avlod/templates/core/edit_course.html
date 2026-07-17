@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ course.name }}ni tahrirlash{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;">
+    <h2>{{ course.name }} kursini tahrirlash</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Saqlash</button>
+        <a href="{% url 'superadmin_dashboard' %}">Bekor qilish</a>
+    </form>
+</div>
+{% endblock %}

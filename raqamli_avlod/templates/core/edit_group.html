@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ group.name }}ni tahrirlash{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;">
+    <h2>{{ group.name }} guruhini tahrirlash</h2>
+    <p><small>O'qituvchini almashtirish uchun quyidagi ro'yxatdan yangisini tanlang</small></p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Saqlash</button>
+        <a href="{% url 'superadmin_dashboard' %}">Bekor qilish</a>
+    </form>
+</div>
+{% endblock %}
